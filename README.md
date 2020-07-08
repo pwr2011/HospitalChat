@@ -1,2 +1,0 @@
-# HospitalChat
-Chatbot 
