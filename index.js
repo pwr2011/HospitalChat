@@ -10,9 +10,10 @@ dotenv.config({ path: ENV_FILE });
 
 const restify = require('restify');
 
+
 // Import required bot services.
 // See https://aka.ms/bot-services to learn more about the different parts of a bot.
-const { BotFrameworkAdapter } = require('botbuilder');
+const { BotFrameworkAdapter,  MemoryStorage, ConversationState, UserState  } = require('botbuilder');
 
 // This bot's main dialog.
 const { AIMY } = require('./aimy');
@@ -55,8 +56,14 @@ const onTurnErrorHandler = async (context, error) => {
 // Set the onTurnError for the singleton BotFrameworkAdapter.
 adapter.onTurnError = onTurnErrorHandler;
 
+
+const memmoryStorage = new MemoryStorage();
+
+const conversationState = new ConversationState(memmoryStorage);
+const userState = new UserState(MemoryStorage)
+
 // Create the main dialog.
-const aimy = new AIMY();
+const aimy = new AIMY(conversationState, userState);
 
 // Listen for incoming requests.
 server.post('/api/messages', (req, res) => {
