@@ -36,6 +36,6 @@ function queryDatabase() {
         .catch(err => console.log(err))
         .then(() => {
             console.log('Finished execution, exiting now');
-            process.exit();
+            //process.exit();
         });
 }
