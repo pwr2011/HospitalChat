@@ -34,8 +34,7 @@ class AIMY extends ActivityHandler {
             
             //const intent = LuisRecognizer.topIntent(luisResult);
             //const entities = luisResult.entities;
-            const intent = (context.activity.text);
-            await this.dispatchToIntentAsync(context, intent,entities);
+            await this.dispatchToIntentAsync(context);
             //const replyText = `TopScoring Intent : ${LuisRecognizer.topIntent(luisResult)}`;
             //await context.sendActivity(MessageFactory.text(replyText, replyText));
             // By calling next() you ensure that the next BotHandler is run.
@@ -50,6 +49,7 @@ class AIMY extends ActivityHandler {
         });   
 
         this.onMembersAdded(async (context, next) => {
+            
             await this.sendwelcomeMessage(context);
             // By calling next() you ensure that the next BotHandler is run.
             await next();
@@ -62,7 +62,6 @@ class AIMY extends ActivityHandler {
         for (const idx in activity.membersAdded) {
             if (activity.membersAdded[idx].id !== activity.recipient.id) {
                 const inputNameMessage = `이름을 입력해주세요!`;
-                console.log("여기까지는 된다!")
                 //await turnContext.sendActivity(inputNameMessage);
                 const welcomeMessage = `안녕하세요. AIMY입니다. 무엇을 도와드릴까요 ${activity.membersAdded[idx].name} 님?`;
                 await turnContext.sendActivity(welcomeMessage);
@@ -75,7 +74,8 @@ class AIMY extends ActivityHandler {
         await turnContext.sendActivity(reply);
     }
 
-    async dispatchToIntentAsync(context, intent, entities) {
+    async dispatchToIntentAsync(context) {//, intent, entities
+        console.log("여기까지는 된다!")
 
         var currentIntent = '';
         const previousIntent = await this.previousIntent.get(context,{});
