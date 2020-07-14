@@ -121,7 +121,7 @@ class AIMY extends ActivityHandler {
                 await context.sendActivity(msg);
                 await this.conversationData.set(context,{endDialog: false});
                 await this.makeDialog.run(context,this.dialogState);
-                conversationData.endDialog = await this.makeReservationDialog.isDialogComplete();
+                conversationData.endDialog = await this.makeDialog.isDialogComplete();
                 if(conversationData.endDialog)
                 {
                     await this.sendSuggestedActions(context);
