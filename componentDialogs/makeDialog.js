@@ -77,7 +77,7 @@ async getContext(step){
 async getStartTime(step){
      
     step.values.Context = step.result
-    return await step.prompt(NUMBER_PROMPT, '일정의 시작시간을 입력해주세요!');
+    return await step.prompt(DATETIME_PROMPT, '일정의 시작시간을 입력해주세요!');
 }
 
 async getEndTime(step){
@@ -90,7 +90,7 @@ async getEndTime(step){
 async getWakeUp(step){
     step.values.EndTime = step.result
 
-    return await step.prompt(DATETIME_PROMPT, '몇분전에 알려드릴까요?')
+    return await step.prompt(NUMBER_PROMPT, '몇분전에 알려드릴까요?')
 }
 
 

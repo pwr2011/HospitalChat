@@ -117,8 +117,6 @@ class AIMY extends ActivityHandler {
         // }
         switch (currentIntent) {
             case 'plan':
-                var msg = '일정을 생성합니다!';
-                await context.sendActivity(msg);
                 await this.conversationData.set(context,{endDialog: false});
                 await this.makeDialog.run(context,this.dialogState);
                 conversationData.endDialog = await this.makeDialog.isDialogComplete();
