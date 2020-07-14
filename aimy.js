@@ -3,6 +3,7 @@
 
 const { ActivityHandler, MessageFactory } = require('botbuilder');
 const { LuisRecognizer } = require('botbuilder-ai');
+const { pg } = require('./DB.js');
 
 class AIMY extends ActivityHandler {
     constructor() {
