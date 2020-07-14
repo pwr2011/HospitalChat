@@ -3,10 +3,19 @@
 
 const { ActivityHandler, MessageFactory } = require('botbuilder');
 const { LuisRecognizer } = require('botbuilder-ai');
+<<<<<<< Updated upstream
 const { pg } = require('./DB.js');
 
 class AIMY extends ActivityHandler {
     constructor() {
+=======
+const { makeDialog } = require('./componentDialogs/makeDialog.js')
+const { pg } = require('./DB.js');
+
+class AIMY extends ActivityHandler {
+    
+    constructor(conversationState,userState) {
+>>>>>>> Stashed changes
         super();
 
         const dispatchRecognizer = new LuisRecognizer({
@@ -17,15 +26,24 @@ class AIMY extends ActivityHandler {
             includeAllIntents: true
         }, true);
 
+        
 
         // See https://aka.ms/about-bot-activity-message to learn more about the message and other activity types.
         this.onMessage(async (context, next) => {
             const luisResult = await dispatchRecognizer.recognize(context);
             
+<<<<<<< Updated upstream
             const intent = LuisRecognizer.topIntent(luisResult);
             const entities = luisResult.entities;
             console.log(intent);
             await this.dispatchToIntentAsync(context, intent,entities);
+=======
+            //const intent = LuisRecognizer.topIntent(luisResult);
+            //const entities = luisResult.entities;
+            const intent = (context.activity.text);
+
+            await this.dispatchToIntentAsync(intent);
+>>>>>>> Stashed changes
             //const replyText = `TopScoring Intent : ${LuisRecognizer.topIntent(luisResult)}`;
             //await context.sendActivity(MessageFactory.text(replyText, replyText));
             // By calling next() you ensure that the next BotHandler is run.
@@ -43,8 +61,15 @@ class AIMY extends ActivityHandler {
 
         for (const idx in activity.membersAdded) {
             if (activity.membersAdded[idx].id !== activity.recipient.id) {
+<<<<<<< Updated upstream
+=======
+                const inputNameMessage = `이름을 입력해주세요!`;
+                //await turnContext.sendActivity(inputNameMessage);
+>>>>>>> Stashed changes
                 const welcomeMessage = `안녕하세요. AIMY입니다. 무엇을 도와드릴까요 ${activity.membersAdded[idx].name} 님?`;
                 await turnContext.sendActivity(welcomeMessage);
+                await this.sendSuggestedActions(turnContext);
+                await turnContext.sendActivity(inputNameMessage);
                 await this.sendSuggestedActions(turnContext);
             }
         }
@@ -54,7 +79,11 @@ class AIMY extends ActivityHandler {
         await turnContext.sendActivity(reply);
     }
 
+<<<<<<< Updated upstream
     async dispatchToIntentAsync(context, intent, entities) {
+=======
+    async dispatchToIntentAsync(intent) {
+>>>>>>> Stashed changes
 
         var currentIntent = intent;
         // const previousIntent = await this.previousIntent.get(context, {});
@@ -74,6 +103,14 @@ class AIMY extends ActivityHandler {
 
         // }
         switch (currentIntent) {
+<<<<<<< Updated upstream
+=======
+            case 'plan':
+                var msg = '일정을 생성합니다!'
+                await context.sendActivity(msg);
+                await this.makeDialog.run(context,this.dialogState);
+            break;
+>>>>>>> Stashed changes
 
             case 'purpose':
                     var msg = '안녕하세요! AIMY는 의지가 부족한 우리를 위해 만들어진 동기부여 스케줄러 입니다!'
