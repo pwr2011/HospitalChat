@@ -57,6 +57,7 @@ this.initialDialogId = WATERFALL_DIALOG;
     }
 }
 
+// step.values.noOfParticipants = step._info.options.(Entiti이름)[0];
 async firstStep(step) {
 endDialog = false;
 // Running a prompt here means the next WaterfallStep will be run when the users response is received.
