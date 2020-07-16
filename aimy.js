@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 const { ActivityHandler, MessageFactory } = require('botbuilder');
 const { LuisRecognizer } = require('botbuilder-ai');
 const { makeDialog } = require('./componentDialogs/makeDialog')
@@ -30,6 +27,8 @@ class AIMY extends ActivityHandler {
 
         // See https://aka.ms/about-bot-activity-message to learn more about the message and other activity types.
         this.onMessage(async (context, next) => {
+            
+            console.log("onMessage 진입");
             //const luisResult = await dispatchRecognizer.recognize(context);
             
             //const intent = LuisRecognizer.topIntent(luisResult);
@@ -71,12 +70,13 @@ class AIMY extends ActivityHandler {
         }
     }
     async sendSuggestedActions(turnContext) {
+        console.log("sendSuggestedActions 진입");
         var reply = MessageFactory.suggestedActions(['일정', '목표', '스케쥴 확인'], 'AIMy의 기능을 선택해주세요...★');
         await turnContext.sendActivity(reply);
     }
 
     async dispatchToIntentAsync(context) {//, intent, entities
-        console.log("여기까지는 된다!")
+        console.log("dispatchToIntentAsync함수로 진입");
 
         var currentIntent = '';
         const previousIntent = await this.previousIntent.get(context,{});
