@@ -55,6 +55,7 @@ class makeDialog extends ComponentDialog {
 
     // step.values.noOfParticipants = step._info.options.(Entiti이름)[0];
     async firstStep(step) {
+        console.log('firstStep 진입');
         endDialog = false;
         // Running a prompt here means the next WaterfallStep will be run when the users response is received.
         return await step.prompt(CHOICE_PROMPT, 'AIMY가 뭘 도와드릴까요?', ['일정', '목표','스케줄확인']);
@@ -62,6 +63,7 @@ class makeDialog extends ComponentDialog {
     }
 
     async getContext(step) {
+        console.log('SecondStep 진입');
         step.values.choice = step.result;
         console.log(step.result)
         if (step.result.value === '일정') {
@@ -78,7 +80,7 @@ class makeDialog extends ComponentDialog {
     }
 
     async confirmStep(step) {
-
+        console.log('confirmStep 진입');
         step.values.detail = step.result
 
         var msg = ` 확인 \n 선택: ${step.values.choice.value}\n detail: ${step.values.detail.value}\n`

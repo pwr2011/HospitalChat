@@ -4,37 +4,37 @@ const { makeDialog } = require('./componentDialogs/makeDialog')
 const { pg } = require('./DB.js');
 
 class AIMY extends ActivityHandler {
-    constructor(conversationState,userState) {
+    constructor(conversationState, userState) {
         super();
 
         this.conversationState = conversationState;
         this.userState = userState;
         this.dialogState = conversationState.createProperty("dialogState");
-        this.makeDialog = new makeDialog(this.conversationState,this.userState);
+        this.makeDialog = new makeDialog(this.conversationState, this.userState);
 
-        
+
         this.previousIntent = this.conversationState.createProperty("previousIntent");
         this.conversationData = this.conversationState.createProperty('conservationData');
-        
-       /* const dispatchRecognizer = new LuisRecognizer({
-            applicationId: process.env.LuisAppId,
-            endpointKey: process.env.LuisAPIKey,
-            endpoint: `https://${process.env.LuisAPIHostName}.api.cognitive.microsoft.com`
-        }, {
-            includeAllIntents: true
-        }, true);
-*/
+
+        /* const dispatchRecognizer = new LuisRecognizer({
+             applicationId: process.env.LuisAppId,
+             endpointKey: process.env.LuisAPIKey,
+             endpoint: `https://${process.env.LuisAPIHostName}.api.cognitive.microsoft.com`
+         }, {
+             includeAllIntents: true
+         }, true);
+ */
 
         // See https://aka.ms/about-bot-activity-message to learn more about the message and other activity types.
         this.onMessage(async (context, next) => {
-            
+
             console.log("onMessage 진입");
             //const luisResult = await dispatchRecognizer.recognize(context);
-            
+
             //const intent = LuisRecognizer.topIntent(luisResult);
             //const entities = luisResult.entities;
             const intent = (context.activity.text);
-            await this.dispatchToIntentAsync(context);
+            await this.sendSuggestedActions(context);
             //const replyText = `TopScoring Intent : ${LuisRecognizer.topIntent(luisResult)}`;
             //await context.sendActivity(MessageFactory.text(replyText, replyText));
             // By calling next() you ensure that the next BotHandler is run.
@@ -46,11 +46,11 @@ class AIMY extends ActivityHandler {
             await this.conversationState.saveChanges(context, false);
             await this.userState.saveChanges(context, false);
             await next();
-        });   
+        });
 
         this.onMembersAdded(async (context, next) => {
-            
-            await this.sendwelcomeMessage(context);
+
+            await this.sendSuggestedActions(context);
             // By calling next() you ensure that the next BotHandler is run.
             await next();
         });
@@ -69,69 +69,72 @@ class AIMY extends ActivityHandler {
             }
         }
     }
-    async sendSuggestedActions(turnContext) {
+    async sendSuggestedActions(context) {
         console.log("sendSuggestedActions 진입");
-        var reply = MessageFactory.suggestedActions(['일정', '목표', '스케쥴 확인'], 'AIMy의 기능을 선택해주세요...★');
-        await turnContext.sendActivity(reply);
+
+        var currentIntent = '';
+        const previousIntent = await this.previousIntent.get(context, {});
+        const conversationData = await this.conversationData.get(context, {});
+
+        if (previousIntent.intentName && conversationData.endDialog === false) {
+            currentIntent = previousIntent.intentName;
+
+        }
+        else if (previousIntent.intentName && conversationData.endDialog === true) {
+            currentIntent = context.activity.text;
+
+        }
+        else {
+            currentIntent = context.activity.text;
+            await this.previousIntent.set(context, { intentName: context.activity.text });
+
+        }
+
+        await this.conversationData.set(context, { endDialog: false });
+        await this.makeDialog.run(context, this.dialogState);
+        conversationData.endDialog = await this.makeDialog.isDialogComplete();
+
+        if (conversationData.endDialog) {
+            await this.sendSuggestedActions(context);
+
+        }
     }
 
     async dispatchToIntentAsync(context) {//, intent, entities
         console.log("dispatchToIntentAsync함수로 진입");
 
         var currentIntent = '';
-        const previousIntent = await this.previousIntent.get(context,{});
-        const conversationData = await this.conversationData.get(context,{});   
+        const previousIntent = await this.previousIntent.get(context, {});
+        const conversationData = await this.conversationData.get(context, {});
 
-        if(previousIntent.intentName && conversationData.endDialog === false )
-        {
-           currentIntent = previousIntent.intentName;
-
-        }
-        else if (previousIntent.intentName && conversationData.endDialog === true)
-        {
-             currentIntent = context.activity.text;
+        if (previousIntent.intentName && conversationData.endDialog === false) {
+            currentIntent = previousIntent.intentName;
 
         }
-        else
-        {
+        else if (previousIntent.intentName && conversationData.endDialog === true) {
             currentIntent = context.activity.text;
-            await this.previousIntent.set(context,{intentName: context.activity.text});
 
         }
+        else {
+            currentIntent = context.activity.text;
+            await this.previousIntent.set(context, { intentName: context.activity.text });
 
-        //Luis 관련 코드 지금은 사용 안하기에 주석처리 함.
-        // const previousIntent = await this.previousIntent.get(context, {});
-        // const conversationData = await this.conversationData.get(context, {});
-
-        // if (previousIntent.intentName && conversationData.endDialog === false) {
-        //     currentIntent = previousIntent.intentName;
-
-        // }
-        // else if (previousIntent.intentName && conversationData.endDialog === true) {
-        //     currentIntent = intent;
-
-        // }
-        // else {
-        //     currentIntent = intent;
-        //     await this.previousIntent.set(context, { intentName: intent });
-
-        // }
+        }
         switch (currentIntent) {
             case 'plan':
-                await this.conversationData.set(context,{endDialog: false});
-                await this.makeDialog.run(context,this.dialogState);
+                await this.conversationData.set(context, { endDialog: false });
+                await this.makeDialog.run(context, this.dialogState);
                 conversationData.endDialog = await this.makeDialog.isDialogComplete();
-               
-                if(conversationData.endDialog)
-                {
+
+                if (conversationData.endDialog) {
                     await this.sendSuggestedActions(context);
 
                 }
-            break;
+                break;
 
             case 'purpose':
-                    var msg = '안녕하세요! AIMY는 의지가 부족한 우리를 위해 만들어진 동기부여 스케줄러 입니다!'
-                    await context.sendActivity(msg)
+                var msg = '안녕하세요! AIMY는 의지가 부족한 우리를 위해 만들어진 동기부여 스케줄러 입니다!'
+                await context.sendActivity(msg)
                 break;
 
             case 'schedule':
@@ -141,7 +144,7 @@ class AIMY extends ActivityHandler {
             case 'name':
                 var msg = '제 이름은 AIMY, 챗봇이죠!'
                 await context.sendActivity(msg);
-            break;
+                break;
             default:
                 console.log("Did not match any case");
                 break;
