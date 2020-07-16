@@ -40,7 +40,6 @@ class makeDialog extends ComponentDialog {
         this.addDialog(new WaterfallDialog(WATERFALL_DIALOG, [
             this.firstStep.bind(this),  // Ask confirmation if user wants to make reservation?
             this.getContext.bind(this),    // Get name from user
-            
             this.confirmStep.bind(this), // Show summary of values entered by user and ask confirmation to make reservation
             this.summaryStep.bind(this)
 
@@ -51,14 +50,6 @@ class makeDialog extends ComponentDialog {
 
     async run(turnContext, accessor) {
         console.log("dialog run 진입");
-
-        /*const luisResult = await dispatchRecognizer.recognize(turnContext);
-        console.log("luis pass!");
-        
-        const intent = LuisRecognizer.topIntent(luisResult);
-        const entities = luisResult.entities;
-        console.log(entities);*/
-
 
         const dialogSet = new DialogSet(accessor);
         dialogSet.add(this);
@@ -81,7 +72,7 @@ class makeDialog extends ComponentDialog {
     async getContext(step) {
         console.log('SecondStep 진입');
         step.values.choice = step.result;
-        console.log(step.result)
+        
         if (step.result.value === '일정') {
             return await step.prompt(CHOICE_PROMPT, '일정을 선택하셨어요. 그다음은요?',['추가','삭제','일정보기']);
         }
@@ -97,12 +88,8 @@ class makeDialog extends ComponentDialog {
 
     async confirmStep(step) {
         console.log('confirmStep 진입');
-        console.log(step.result);
-        step.values.detail = step.result;
         
-        //var msg = ` 확인 \n 선택: ${step.values.choice.value}\n detail: ${step.values.detail.value}\n`
-
-        //await step.context.sendActivity(msg);
+        step.values.detail = step.result;
 
         return await step.prompt(TEXT_PROMPT, '몇시부터 몇시까지 무슨 일정?');
     }
@@ -116,12 +103,8 @@ class makeDialog extends ComponentDialog {
         const entities = luisResult.entities;
         console.log(entities);
         
-        console.log(step.values.choice.value);
-        console.log(step.values.detail.value);
-
         if(step.values.choice.value === '일정'){
             if(step.values.detail.value === '추가'){
-                console.log("if-else -> 일정추가");
                 database.queryInsertSchedule(entities);
             }
             else if(step.values.detail.value ==='삭제'){
@@ -148,6 +131,7 @@ class makeDialog extends ComponentDialog {
 
         endDialog = true;
         return await step.endDialog();
+
     }
 
     async isDialogComplete() {

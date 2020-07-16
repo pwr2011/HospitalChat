@@ -1,48 +1,29 @@
 const { ActivityHandler, MessageFactory } = require('botbuilder');
 const { LuisRecognizer } = require('botbuilder-ai');
 const { makeDialog } = require('./componentDialogs/makeDialog')
-const { pg } = require('./DB.js');
 
 class AIMY extends ActivityHandler {
     constructor(conversationState, userState) {
         super();
-
+        //User state와 dialog State를 저장하기 위함
         this.conversationState = conversationState;
         this.userState = userState;
         this.dialogState = conversationState.createProperty("dialogState");
         this.makeDialog = new makeDialog(this.conversationState, this.userState);
 
-
         this.previousIntent = this.conversationState.createProperty("previousIntent");
         this.conversationData = this.conversationState.createProperty('conservationData');
 
-         const dispatchRecognizer = new LuisRecognizer({
-             applicationId: process.env.LuisAppId,
-             endpointKey: process.env.LuisAPIKey,
-             endpoint: `https://${process.env.LuisAPIHostName}.api.cognitive.microsoft.com`
-         }, {
-             includeAllIntents: true
-         }, true);
- 
-
         // See https://aka.ms/about-bot-activity-message to learn more about the message and other activity types.
         this.onMessage(async (context, next) => {
-
             console.log("onMessage 진입");
-            //const luisResult = await dispatchRecognizer.recognize(context);
-
-            //const intent = LuisRecognizer.topIntent(luisResult);
-            //const entities = luisResult.entities;
-            
-        
             await this.sendSuggestedActions(context);
-            //const replyText = `TopScoring Intent : ${LuisRecognizer.topIntent(luisResult)}`;
-            //await context.sendActivity(MessageFactory.text(replyText, replyText));
             // By calling next() you ensure that the next BotHandler is run.
             await next();
         });
 
         this.onDialog(async (context, next) => {
+            console.log("onDialog 진입!");
             // Save any state changes. The load happened during the execution of the Dialog.
             await this.conversationState.saveChanges(context, false);
             await this.userState.saveChanges(context, false);
@@ -50,27 +31,45 @@ class AIMY extends ActivityHandler {
         });
 
         this.onMembersAdded(async (context, next) => {
-
+            console.log("onMembersAdded 진입!");
+            await this.sendwelcomeMessage(context);
             await this.sendSuggestedActions(context);
             // By calling next() you ensure that the next BotHandler is run.
             await next();
         });
+        /*
+        this.onTurn(async (context, next) => {
+            console.log("onTurn 진입!");
+            await next();
+        });
+        this.onMessageReaction(async (context, next) => {
+            console.log("onMessageReaction 호출!");
+            await next();
+        });
+        this.onReactionsAdded(async (context, next) => {
+            console.log("onReactionAdded 호출!");
+            await next();
+        });
+        this.onEvent(async (context, next) => {
+            console.log("onEvent 호출!");
+            await next();
+        });*/
     }
 
     async sendwelcomeMessage(turnContext) {
+        console.log("sendwelcomeMessage 진입!");
         const { activity } = turnContext;
-
         for (const idx in activity.membersAdded) {
             if (activity.membersAdded[idx].id !== activity.recipient.id) {
-                const inputNameMessage = `이름을 입력해주세요!`;
-                //await turnContext.sendActivity(inputNameMessage);
-                const welcomeMessage = `안녕하세요. AIMY입니다. 무엇을 도와드릴까요 ${activity.membersAdded[idx].name} 님?`;
+                //console.log(activity.from.name);
+                var userName = activity.from.name;
+                const welcomeMessage = `안녕하세요. ${userName}. 저는 AIMY입니다.`;
                 await turnContext.sendActivity(welcomeMessage);
-                await this.sendSuggestedActions(turnContext);
+                
             }
         }
     }
-    async sendSuggestedActions(context,entities) {
+    async sendSuggestedActions(context, entities) {
         console.log("sendSuggestedActions 진입");
 
         var currentIntent = '';
@@ -79,7 +78,6 @@ class AIMY extends ActivityHandler {
 
         if (previousIntent.intentName && conversationData.endDialog === false) {
             currentIntent = previousIntent.intentName;
-
         }
         else if (previousIntent.intentName && conversationData.endDialog === true) {
             currentIntent = context.activity.text;
@@ -88,11 +86,10 @@ class AIMY extends ActivityHandler {
         else {
             currentIntent = context.activity.text;
             await this.previousIntent.set(context, { intentName: context.activity.text });
-
         }
 
         await this.conversationData.set(context, { endDialog: false });
-        await this.makeDialog.run(context, this.dialogState,entities); //entities 추가
+        await this.makeDialog.run(context, this.dialogState); //entities 추가
         conversationData.endDialog = await this.makeDialog.isDialogComplete();
 
         if (conversationData.endDialog) {
