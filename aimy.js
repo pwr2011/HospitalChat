@@ -16,14 +16,14 @@ class AIMY extends ActivityHandler {
         this.previousIntent = this.conversationState.createProperty("previousIntent");
         this.conversationData = this.conversationState.createProperty('conservationData');
 
-        /* const dispatchRecognizer = new LuisRecognizer({
+         const dispatchRecognizer = new LuisRecognizer({
              applicationId: process.env.LuisAppId,
              endpointKey: process.env.LuisAPIKey,
              endpoint: `https://${process.env.LuisAPIHostName}.api.cognitive.microsoft.com`
          }, {
              includeAllIntents: true
          }, true);
- */
+ 
 
         // See https://aka.ms/about-bot-activity-message to learn more about the message and other activity types.
         this.onMessage(async (context, next) => {
@@ -33,7 +33,8 @@ class AIMY extends ActivityHandler {
 
             //const intent = LuisRecognizer.topIntent(luisResult);
             //const entities = luisResult.entities;
-            const intent = (context.activity.text);
+            
+        
             await this.sendSuggestedActions(context);
             //const replyText = `TopScoring Intent : ${LuisRecognizer.topIntent(luisResult)}`;
             //await context.sendActivity(MessageFactory.text(replyText, replyText));
@@ -69,7 +70,7 @@ class AIMY extends ActivityHandler {
             }
         }
     }
-    async sendSuggestedActions(context) {
+    async sendSuggestedActions(context,entities) {
         console.log("sendSuggestedActions 진입");
 
         var currentIntent = '';
@@ -91,7 +92,7 @@ class AIMY extends ActivityHandler {
         }
 
         await this.conversationData.set(context, { endDialog: false });
-        await this.makeDialog.run(context, this.dialogState);
+        await this.makeDialog.run(context, this.dialogState,entities); //entities 추가
         conversationData.endDialog = await this.makeDialog.isDialogComplete();
 
         if (conversationData.endDialog) {

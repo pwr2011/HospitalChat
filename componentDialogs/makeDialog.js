@@ -4,6 +4,8 @@ const { ConfirmPrompt, ChoicePrompt, DateTimePrompt, NumberPrompt, TextPrompt } 
 
 const { DialogSet, DialogTurnStatus } = require('botbuilder-dialogs');
 
+const { LuisRecognizer } = require('botbuilder-ai');
+const { DB } = require('../DB');
 
 const CHOICE_PROMPT = 'CHOICE_PROMPT';
 const CONFIRM_PROMPT = 'CONFIRM_PROMPT';
@@ -12,6 +14,16 @@ const NUMBER_PROMPT = 'NUMBER_PROMPT';
 const DATETIME_PROMPT = 'DATETIME_PROMPT';
 const WATERFALL_DIALOG = 'WATERFALL_DIALOG';
 var endDialog = '';
+
+const dispatchRecognizer = new LuisRecognizer({
+    applicationId: process.env.LuisAppId,
+    endpointKey: process.env.LuisAPIKey,
+    endpoint: `https://${process.env.LuisAPIHostName}.api.cognitive.microsoft.com`
+}, {
+    includeAllIntents: true
+}, true);
+
+const database = new DB();
 
 class makeDialog extends ComponentDialog {
 
@@ -34,18 +46,22 @@ class makeDialog extends ComponentDialog {
 
         ]));
 
-
-
-
         this.initialDialogId = WATERFALL_DIALOG;
-
-
     }
 
     async run(turnContext, accessor) {
+        console.log("dialog run 진입");
+
+        /*const luisResult = await dispatchRecognizer.recognize(turnContext);
+        console.log("luis pass!");
+        
+        const intent = LuisRecognizer.topIntent(luisResult);
+        const entities = luisResult.entities;
+        console.log(entities);*/
+
+
         const dialogSet = new DialogSet(accessor);
         dialogSet.add(this);
-
         const dialogContext = await dialogSet.createContext(turnContext);
         const results = await dialogContext.continueDialog();
         if (results.status === DialogTurnStatus.empty) {
@@ -81,29 +97,59 @@ class makeDialog extends ComponentDialog {
 
     async confirmStep(step) {
         console.log('confirmStep 진입');
-        step.values.detail = step.result
+        console.log(step.result);
+        step.values.detail = step.result;
+        
+        //var msg = ` 확인 \n 선택: ${step.values.choice.value}\n detail: ${step.values.detail.value}\n`
 
-        var msg = ` 확인 \n 선택: ${step.values.choice.value}\n detail: ${step.values.detail.value}\n`
+        //await step.context.sendActivity(msg);
 
-        await step.context.sendActivity(msg);
-
-        return await step.prompt(CONFIRM_PROMPT, '입력한게맞지?', ['yes', 'no']);
+        return await step.prompt(TEXT_PROMPT, '몇시부터 몇시까지 무슨 일정?');
     }
 
     async summaryStep(step) {
+        console.log("4th step in!");
+        
+        
+        const luisResult = await dispatchRecognizer.recognize(step.context);
+        console.log("luis pass!");
+        const entities = luisResult.entities;
+        console.log(entities);
+        
+        console.log(step.values.choice.value);
+        console.log(step.values.detail.value);
 
-        if (step.result === true) {
-            // Business 
-
-            await step.context.sendActivity("일정 생성 완료!")
-            endDialog = true;
-            return await step.endDialog();
-
+        if(step.values.choice.value === '일정'){
+            if(step.values.detail.value === '추가'){
+                console.log("if-else -> 일정추가");
+                database.queryInsertSchedule(entities);
+            }
+            else if(step.values.detail.value ==='삭제'){
+                database.queryDeleteSchedule(entities);
+            }
+            else{ //수정
+                
+            }
+        }
+        else if(step.values.choice.value === '목표'){
+            if(step.values.detail.value === '추가'){
+                database.queryInsertAim(entities);
+            }
+            else if(step.values.detail.value ==='삭제'){
+                database.queryDeleteAim(entities);
+            }
+            else{ //목표 수정
+                
+            }
+        }
+        else{ //스케줄 확인
+            database.queryDatabase();
         }
 
-
-
+        endDialog = true;
+        return await step.endDialog();
     }
+
     async isDialogComplete() {
         return endDialog;
     }

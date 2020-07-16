@@ -19,6 +19,7 @@
         "botbuilder": "~4.9.0",
         "botbuilder-ai": "^4.9.2",
         "dotenv": "^8.2.0",
+        "moment": "^2.27.0",
         "package": "^1.0.1",
         "pg": "^8.3.0",
         "restify": "~8.5.1",
