@@ -12,7 +12,8 @@ const restify = require('restify');
 
 // Import required bot services.
 // See https://aka.ms/bot-services to learn more about the different parts of a bot.
-const { BotFrameworkAdapter } = require('botbuilder');
+
+const { BotFrameworkAdapter, MemoryStorage, UserState, ConversationState } = require('botbuilder');
 
 // This bot's main dialog.
 const { DialogAndWelcomeBot } = require('./bots/dialogAndWelcomeBot');
@@ -58,8 +59,10 @@ const onTurnErrorHandler = async (context, error) => {
 adapter.onTurnError = onTurnErrorHandler;
 
 // Create the main dialog.
+const memoryStorage = new MemoryStorage();
 
-const aimy = new AIMY();
+const userState = new UserState(memoryStorage);
+const conversationState = new ConversationState(memoryStorage);
 
 const dialog = new MainDialog(userState);
 const bot = new DialogAndWelcomeBot(conversationState, userState, dialog);

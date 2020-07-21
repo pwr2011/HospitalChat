@@ -2,14 +2,14 @@
 // Licensed under the MIT License.
 
 const { ComponentDialog, DialogSet, DialogTurnStatus, WaterfallDialog } = require('botbuilder-dialogs');
-//const { ROOMDIALOG, ROOM_DIALOG } = require('./roomDialog');
+const {aimDialog,AIM_DIALOG } = require('./aimDialog');
+const { roomDialog,ROOM_DIALOG } = require('./roomDialog');
 
 const MAIN_DIALOG = 'MAIN_DIALOG';
 const WATERFALL_DIALOG = 'WATERFALL_DIALOG';
 const USER_PROFILE_PROPERTY = 'USER_PROFILE_PROPERTY';
 
 const { LuisRecognizer } = require('botbuilder-ai');
-const { DB } = require('../DB');
 
 const { ConfirmPrompt, ChoicePrompt, DateTimePrompt, NumberPrompt, TextPrompt } = require('botbuilder-dialogs');
 
@@ -26,11 +26,8 @@ const dispatchRecognizer = new LuisRecognizer({
     includeAllIntents: true
 }, true);
 
-//루이스 엔티티 전역변수 
-var entities;
-var userName;
+
 //db연결
-const database = new DB();
 
 
 
@@ -44,7 +41,9 @@ class MainDialog extends ComponentDialog {
         this.addDialog(new ChoicePrompt(CHOICE_PROMPT)); // 박스
 
 
-       // this.addDialog(new ROOMDIALOG());
+        this.addDialog(new aimDialog());
+        this.addDialog(new roomDialog());
+
         this.addDialog(new WaterfallDialog(WATERFALL_DIALOG, [
 
         this.choiceStep.bind(this),
@@ -76,7 +75,7 @@ class MainDialog extends ComponentDialog {
 
     async choiceStep(step) {
         console.log('choiceStep 진입');
-        return await step.prompt(CHOICE_PROMPT, 'AIMY가 뭘 도와드릴까요?', ['일정', '목표', '스케줄확인']);
+        return await step.prompt(CHOICE_PROMPT, 'AIMY가 뭘 도와드릴까요?', ['ROOM', '목표', '스케줄확인']);
 
     }
 
@@ -85,11 +84,14 @@ class MainDialog extends ComponentDialog {
         console.log('detailStep 진입');
         step.values.choice = step.result;
 
-        if (step.result.value === '일정') {
-            return await step.prompt(CHOICE_PROMPT, '일정을 선택하셨어요. 그다음은요?', ['추가', '삭제', '수정']);
+        if (step.result.value === '목표') {
+            console.log('aimdialog 진입');
+            return await step.beginDialog(AIM_DIALOG);
+
         }
-        else if (step.result.value === '목표') {
-            return await step.prompt(CHOICE_PROMPT, '목표를 선택하셨어요. 그다음은요?', ['추가', '삭제', '수정']);
+        else if (step.result.value === 'ROOM') {
+            console.log('roomdialog 진입');
+            return await step.beginDialog(ROOM_DIALOG);
         }
         else {
 
@@ -97,6 +99,7 @@ class MainDialog extends ComponentDialog {
             database.queryResultSchedule()
             return '확인';
         }
+
 
     }
 
