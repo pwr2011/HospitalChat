@@ -6,6 +6,8 @@ const { DialogSet, DialogTurnStatus } = require('botbuilder-dialogs');
 
 const { LuisRecognizer } = require('botbuilder-ai');
 
+const {database} = require('../DBconnect');
+
 const AIM_DIALOG='AIM_DIALOG';
 
 const CHOICE_PROMPT = 'CHOICE_PROMPT';
@@ -24,8 +26,6 @@ const dispatchRecognizer = new LuisRecognizer({
     includeAllIntents: true
   
 }, true);
-
-
 
 var entities; //루이스 엔티티
 var context; //목표내용
@@ -206,6 +206,7 @@ class aimDialog extends ComponentDialog {
         {
             if(step.result.value ==='네'){
                 console.log('목표 추가하는 디비함수');
+                database.
                 //추가하는 디비함수
                 //디비함수의 파라미터는 entities. 으로 보냄
 

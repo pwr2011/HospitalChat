@@ -6,7 +6,7 @@ const { DialogSet, DialogTurnStatus } = require('botbuilder-dialogs');
 
 const { LuisRecognizer } = require('botbuilder-ai');
 
-const { DB } = require('../DB');
+const {database} = require('../DBconnect');
 
 const ROOM_DIALOG='ROOM_DIALOG';
 
@@ -19,7 +19,6 @@ const WATERFALL_DIALOG = 'WATERFALL_DIALOG';
 var endDialog = '';
 
 //db연결
-const database = new DB();
 
 var userName;
 
@@ -32,7 +31,6 @@ class roomDialog extends ComponentDialog {
         this.addDialog(new ChoicePrompt(CHOICE_PROMPT));
         this.addDialog(new ConfirmPrompt(CONFIRM_PROMPT));
         this.addDialog(new NumberPrompt(NUMBER_PROMPT));
-        this.addDialog(new DateTimePrompt(DATETIME_PROMPT));
 
 
         this.addDialog(new WaterfallDialog(WATERFALL_DIALOG, [
@@ -41,7 +39,6 @@ class roomDialog extends ComponentDialog {
             this.thirdStep.bind(this),  // 타이핑한값을 루이스 이용 
             this.fourthStep.bind(this), //요약
             this.fifthStep.bind(this) //DB처리 부분
-
         ]));
 
         this.initialDialogId = WATERFALL_DIALOG;
@@ -61,11 +58,12 @@ class roomDialog extends ComponentDialog {
         step.values.firstChoice = step.result;
 
         if (step.values.firstChoice.value === '참가') {
-            var res = await database.queryResultAim();
+            var res = await database.queryShowAllRoom();
             const rows = res.rows;
             rows.map(row => {
-                step.context.sendActivity(this.ShowRoomClear(row));
-                console.log(this.ShowRoomClear(row));
+                console.log(row);
+                step.context.sendActivity(`${this.ShowRoomClear(row)}`);
+                //console.log(this.ShowRoomClear(row));
             });
             return await step.prompt(NUMBER_PROMPT, '어떤방에 들어가시나요?');
         }
@@ -119,15 +117,19 @@ class roomDialog extends ComponentDialog {
 
     async fourthStep(step) {
         console.log("fourthStep 진입!");
-        step.values.thirdChoice = step.result;
+        step.values.thirdChoice = step.result;        
         
         if(step.values.firstChoice.value ==='참가'){
             if(step.values.thirdChoice.value ==='네'){
-                database.queryJoinRoom(step.values.secondChoice.value);
-                step.context.sendActivity('참가되었습니다.');
+                var res = await database.queryRoomInfo(step.values.secondChoice);
+                const rows = res.rows;
+                var roomContext = rows[0].context;
+                var roomCycle = rows[0].achievecycle;
+                await database.queryJoinRoom(step.context._activity.from.name, step.values.secondChoice,roomContext,roomCycle);
+                await step.context.sendActivity('참가되었습니다.');
             }
             else{
-                step.context.sendActivity('취소되었습니다.');
+                await step.context.sendActivity('취소되었습니다.');
             }
             endDialog = true;
             return await step.endDialog();
@@ -140,10 +142,10 @@ class roomDialog extends ComponentDialog {
         else{ //삭제
             if(step.values.thirdChoice.value ==='네'){
                 database.queryDeleteAim(step.values.secondChoice.value);
-                step.context.sendActivity(`${step.values.secondChoice.value}방이 삭제되었습니다!`);
+                await step.context.sendActivity(`${step.values.secondChoice.value}방이 삭제되었습니다!`);
             }
             else{
-                step.context.sendActivity('취소되었습니다.');
+                await step.context.sendActivity('취소되었습니다.');
             }
             endDialog = true;
             return await step.endDialog();
@@ -152,23 +154,24 @@ class roomDialog extends ComponentDialog {
     }
     
     async fifthStep(step) { //생성선택시에만 이 스탭으로 도달함
+        console.log('fifthStep으로 진입!');
         if(step.result.value === `네`){
-            var roomContext = step.values.secondChoice.value;
-            var roomCycle = step.values.thirdChoice.value;
+            var roomContext = step.values.secondChoice;
+            var roomCycle = step.values.thirdChoice;
             var roomHead = step.context._activity.from.name;
             database.queryMakeRoom(roomContext, roomCycle, roomHead);
-            step.context.sendActivity('방 생성이 완료되었습니다.');
+            await step.context.sendActivity('방 생성이 완료되었습니다.');
         }
         else{
             console.log("아니요로 진입");
-            step.context.sendActivity('취소되었습니다.');
+            await step.context.sendActivity('취소되었습니다.');
         }
         endDialog = true;
         return await step.endDialog();
     }
 
     ShowRoomClear(row) {
-        var msg = `room id : ${row.roomId} room 목표 : ${row.Context} \r\n 목표 주기 : ${row.achieveCycle}일에 한번`;
+        var msg = `room id : ${row.roomid} room 목표 : ${row.context} \r\n 목표 주기 : ${row.achievecycle}일에 한번`;
         return msg;
     }
 

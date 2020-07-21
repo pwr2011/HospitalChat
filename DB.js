@@ -29,18 +29,20 @@ class DB {
         });
     }
 
-    queryInsertAim(){ //목표 넣기
-
+    
+    async queryShowAim(userNum){ //userNum이 가지고 있는 모든 목표 보여주기
+        console.log("queryShowAim 진입!");
+        const query = `select * from aim where userId = userNum`;
+        return await client.query(query);
     }
-    queryInsertSchedule(entities){ //일정 넣기
-        console.log("queryInsertSchedule Function 진입");
+    async queryInsertAim() { //목표 넣기
+        console.log("queryInsertSchedule 진입");
         //if(entities.AimyStartTime.realTime_hour.realTime ===) 존재하지 않는다면 현시간
-        
-        const query=`
+
+        const query = `
         INSERT INTO plan
-        (context, start_time_month, start_time_day, start_time_hour,
-            end_time_month,end_time_day,end_time_hour,
-            wake_up_hour,wake_up_minute) VALUES
+        (aimId,userId, context, startTimeMonth, startTimeDay,
+            endTimeMonth,endTimeDay,achieveCount,achieveCycle, curCycleCount) VALUES
 
         (${entities.AimyContext}, ${entities.AimyStartTime.realTime_month.realTime},
         ${entities.AimyStartTime.realTime_day.realTime},
@@ -49,86 +51,97 @@ class DB {
         ${entities.AimyEndtime.realTime_day.realTime},
         ${entities.AimyEndtime.realTime_hour.realTime},
         ${entities.AimyWakeUp.realTime_hour.realTime},
-        ${entities.AimyWakeUp.realTime_minute.realTime});
-        `;
+        ${entities.AimyWakeUp.realTime_minute.realTime});`;
 
-    client
-        .query(query)
-        .then(() => {
-            console.log('Schedule Inserted!');
-            //client.end(console.log('Closed client connection'));
-        })
-        .catch(err => console.log(err))
-        .then(() => {
-            console.log('Finished execution, exiting now');
-            //process.exit();
-        });
+        client
+            .query(query)
+            .then(() => {
+                console.log('Schedule Inserted!');
+                //client.end(console.log('Closed client connection'));
+            })
+            .catch(err => console.log(err))
+            .then(() => {
+                console.log('Finished execution, exiting now');
+                //process.exit();
+            });
+        
+
     }
     
     queryDeleteAim(){ //목표 삭제
 
-    }
-    queryDeleteSchedule(){//스케줄 삭제
-        
     }
 
     queryModifyAim(){//목표 수정
 
 
     }
-    
-    queryModifySchedule(){ //스케줄 수정
 
-
+    async queryShowAllRoom(){
+        console.log('queryShowAllRoom 진입!');
+        const query = `select * from room`;
+        return await client.query(query);
     }
-
-
-    queryDatabase(){
-        const query = ``;
-
-    client
-        .query(query)
-        .then(() => {
-            console.log('Table created successfully!');
-            //client.end(console.log('Closed client connection'));
-        })
-        .catch(err => console.log(err))
-        .then(() => {
-            //console.log('Finished execution, exiting now');
-            //process.exit();
-        });
-    }
-
-    async queryShowRoomEntered(){
-
+    async queryRoomEnter(userName,roomNum){ // roomNum방으로 들어가기
+        console.log('queryShowRoomEntered 진입!');
+        const query = `update room set enteredId = array_append(enteredId,'${userName}')
+        where roomId = ${roomNum}`;
+        await client.query(query);
     }
     async queryShowAchievePercentage(){}
-    async queryJoinRoom(roomNum){}
-    async queryMakeRoom(roomInfo){}
-    async queryResultSchedule() {//스케줄 보여주는 함수
-        const query = `select * from plan`;
-    
+
+    async queryRoomInfo(roomNum){
+        console.log(roomNum);
+        console.log('queryRoomInfo 진입!');
+        const getInfoQuery = `select context, achieveCycle from room where roomId = ${roomNum}`;
+
+        return await client.query(getInfoQuery);
+    }
+    async queryJoinRoom(userName, roomNum,roomContext, roomCycle){
+        console.log('queryJoinRoom 진입!');
+        console.log(userName);
+        console.log(roomNum);
+        console.log(roomContext);
+        console.log(roomCycle);
+        
+        const query = `update room set enteredId = array_append(enteredId,'${userName}')
+        where roomId = ${roomNum};
+        insert into aim (userId, context, achieveCount, achieveCycle, curCycleCount)
+        values ('${userName}', '${roomContext}',0,${roomCycle},0)`;
         return await client.query(query);
-            
-       /*     .then(res => {
-                return res;
-                const rows = res.rows;
-                rows.map(row => {
-                    console.log(`Read: ${JSON.stringify(row)}`);
-                });
-    
-                //process.exit();
+        /*await client
+            .query(query)
+            .then(() => {
+                console.log('queryJoinRoom Completed!!');
+                //client.end(console.log('Closed client connection'));
             })
-            .catch(err => {
-                console.log(err);
+            .catch(err => console.log(err))
+            .then(() => {
+                //console.log('Finished execution, exiting now');
+                //process.exit();
             });*/
-            
     }
-    
-    queryResultAim(){ //목표 보여주는 함수
 
-
-    }
+    async queryMakeRoom(roomContext, roomCycle, roomHead) {
+        console.log('queryMakeRoom 진입!');
+        const query = //목표방에서는 일정이 사용되지 않기에 일단 안집어넣음
+            `insert into room (headId, context, achieveCycle,enteredId)
+          values ('${roomHead}', '${roomContext}',${roomCycle},'{${roomHead}}');
+          insert into aim (userId, context, achieveCount, achieveCycle, curCycleCount)
+          values ('${roomHead}', '${roomContext}',0,${roomCycle},0)`;
+        console.log(query);
+        client
+            .query(query)
+            .then(() => {
+                console.log('Make Room Completed!');
+                //client.end(console.log('Closed client connection'));
+            })
+            .catch(err => console.log(err))
+            .then(() => {
+                //console.log('Finished execution, exiting now');
+                //process.exit();
+            });
+        }
     
 }
 module.exports.DB = DB;
