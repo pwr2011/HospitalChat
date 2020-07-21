@@ -58,12 +58,11 @@ const onTurnErrorHandler = async (context, error) => {
 adapter.onTurnError = onTurnErrorHandler;
 
 // Create the main dialog.
-<<<<<<< Updated upstream
+
 const aimy = new AIMY();
-=======
+
 const dialog = new MainDialog(userState);
 const bot = new DialogAndWelcomeBot(conversationState, userState, dialog);
->>>>>>> Stashed changes
 
 // Listen for incoming requests.
 server.post('/api/messages', (req, res) => {
