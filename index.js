@@ -15,7 +15,9 @@ const restify = require('restify');
 const { BotFrameworkAdapter } = require('botbuilder');
 
 // This bot's main dialog.
-const { AIMY } = require('./aimy');
+const { DialogAndWelcomeBot } = require('./bots/dialogAndWelcomeBot');
+const { MainDialog } = require('./componentDialogs/mainDialog');
+
 
 // Create HTTP server
 const server = restify.createServer();
@@ -56,29 +58,34 @@ const onTurnErrorHandler = async (context, error) => {
 adapter.onTurnError = onTurnErrorHandler;
 
 // Create the main dialog.
+<<<<<<< Updated upstream
 const aimy = new AIMY();
+=======
+const dialog = new MainDialog(userState);
+const bot = new DialogAndWelcomeBot(conversationState, userState, dialog);
+>>>>>>> Stashed changes
 
 // Listen for incoming requests.
 server.post('/api/messages', (req, res) => {
     adapter.processActivity(req, res, async (context) => {
         // Route to main dialog.
-        await aimy.run(context);
+        await bot.run(context);
     });
 });
 
-// Listen for Upgrade requests for Streaming.
-server.on('upgrade', (req, socket, head) => {
-    // Create an adapter scoped to this WebSocket connection to allow storing session data.
-    const streamingAdapter = new BotFrameworkAdapter({
-        appId: process.env.MicrosoftAppId,
-        appPassword: process.env.MicrosoftAppPassword
-    });
-    // Set onTurnError for the BotFrameworkAdapter created for each connection.
-    streamingAdapter.onTurnError = onTurnErrorHandler;
+// // Listen for Upgrade requests for Streaming.
+// server.on('upgrade', (req, socket, head) => {
+//     // Create an adapter scoped to this WebSocket connection to allow storing session data.
+//     const streamingAdapter = new BotFrameworkAdapter({
+//         appId: process.env.MicrosoftAppId,
+//         appPassword: process.env.MicrosoftAppPassword
+//     });
+//     // Set onTurnError for the BotFrameworkAdapter created for each connection.
+//     streamingAdapter.onTurnError = onTurnErrorHandler;
 
-    streamingAdapter.useWebSocket(req, socket, head, async (context) => {
-        // After connecting via WebSocket, run this logic for every request sent over
-        // the WebSocket connection.
-        await aimy.run(context);
-    });
-});
+//     streamingAdapter.useWebSocket(req, socket, head, async (context) => {
+//         // After connecting via WebSocket, run this logic for every request sent over
+//         // the WebSocket connection.
+//         await aimy.run(context);
+//     });
+// });
