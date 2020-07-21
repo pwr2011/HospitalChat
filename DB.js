@@ -32,43 +32,38 @@ class DB {
     
     async queryShowAim(userNum){ //userNum이 가지고 있는 모든 목표 보여주기
         console.log("queryShowAim 진입!");
-        const query = `select * from aim where userId = userNum`;
+        const query = `select * from aim where userId = '${userNum}'`;
+        console.log(query);
         return await client.query(query);
     }
-    async queryInsertAim() { //목표 넣기
+
+    async queryInsertAim(entities,userName,context) { //목표 넣기
         console.log("queryInsertSchedule 진입");
         //if(entities.AimyStartTime.realTime_hour.realTime ===) 존재하지 않는다면 현시간
 
         const query = `
-        INSERT INTO plan
-        (aimId,userId, context, startTimeMonth, startTimeDay,
+        INSERT INTO aim
+        (userId, context, startTimeMonth, startTimeDay,
             endTimeMonth,endTimeDay,achieveCount,achieveCycle, curCycleCount) VALUES
-
-        (${entities.AimyContext}, ${entities.AimyStartTime.realTime_month.realTime},
-        ${entities.AimyStartTime.realTime_day.realTime},
-        ${entities.AimyStartTime.realTime_hour.realTime},
-        ${entities.AimyEndtime.realTime_month.realTime},
-        ${entities.AimyEndtime.realTime_day.realTime},
-        ${entities.AimyEndtime.realTime_hour.realTime},
-        ${entities.AimyWakeUp.realTime_hour.realTime},
-        ${entities.AimyWakeUp.realTime_minute.realTime});`;
-
-        client
-            .query(query)
-            .then(() => {
-                console.log('Schedule Inserted!');
-                //client.end(console.log('Closed client connection'));
-            })
-            .catch(err => console.log(err))
-            .then(() => {
-                console.log('Finished execution, exiting now');
-                //process.exit();
-            });
+        ('${userName}', '${context}',
+        ${entities.startTime_month},
+        ${entities.startTime_day},
+        ${entities.endTime_month},
+        ${entities.endTime_day},0,
+        ${entities.timeCycle},0);`;
         
+        return await client.query(query);
 
     }
     
-    queryDeleteAim(){ //목표 삭제
+    async queryDeleteAim(aimNumber,userName){ //목표 삭제
+        console.log("queryDeleteAim 진입");
+        //지우려는 목표가 목표방에 있는 목표라면 headId가 나의 Id가 같은지 확인한다.
+        //그리고 내가 방장이라면 목표방에 있는 모든 사람들의 해당목표를 삭제한다
+        //구현해야함.
+        const query1 = `select * from aim where aimId = ${aimNumber}`;
+        const query2 = `delete from aim where aimId = ${aimNumber} and userId = '${userName}'`;
+        return await client.query(query);
 
     }
 
@@ -91,7 +86,6 @@ class DB {
     async queryShowAchievePercentage(){}
 
     async queryRoomInfo(roomNum){
-        console.log(roomNum);
         console.log('queryRoomInfo 진입!');
         const getInfoQuery = `select context, achieveCycle from room where roomId = ${roomNum}`;
 
@@ -99,48 +93,35 @@ class DB {
     }
     async queryJoinRoom(userName, roomNum,roomContext, roomCycle){
         console.log('queryJoinRoom 진입!');
-        console.log(userName);
-        console.log(roomNum);
-        console.log(roomContext);
-        console.log(roomCycle);
         
         const query = `update room set enteredId = array_append(enteredId,'${userName}')
         where roomId = ${roomNum};
         insert into aim (userId, context, achieveCount, achieveCycle, curCycleCount)
         values ('${userName}', '${roomContext}',0,${roomCycle},0)`;
         return await client.query(query);
-        /*await client
-            .query(query)
-            .then(() => {
-                console.log('queryJoinRoom Completed!!');
-                //client.end(console.log('Closed client connection'));
-            })
-            .catch(err => console.log(err))
-            .then(() => {
-                //console.log('Finished execution, exiting now');
-                //process.exit();
-            });*/
     }
 
     async queryMakeRoom(roomContext, roomCycle, roomHead) {
         console.log('queryMakeRoom 진입!');
-        const query = //목표방에서는 일정이 사용되지 않기에 일단 안집어넣음
+        const query1 = //목표방에서는 일정이 사용되지 않기에 일단 안집어넣음
             `insert into room (headId, context, achieveCycle,enteredId)
-          values ('${roomHead}', '${roomContext}',${roomCycle},'{${roomHead}}');
-          insert into aim (userId, context, achieveCount, achieveCycle, curCycleCount)
-          values ('${roomHead}', '${roomContext}',0,${roomCycle},0)`;
-        console.log(query);
-        client
-            .query(query)
-            .then(() => {
-                console.log('Make Room Completed!');
-                //client.end(console.log('Closed client connection'));
-            })
-            .catch(err => console.log(err))
-            .then(() => {
-                //console.log('Finished execution, exiting now');
-                //process.exit();
-            });
+          values ('${roomHead}', '${roomContext}',${roomCycle},'{${roomHead}}');`
+        const query2 = `select * from room where headId = '${roomHead}' and context = '${roomContext}'`;
+        
+        await client.query(query1);
+        
+        //새로생긴 룸 넘버를 알기위한 중간쿼리
+        var res = await client.query(query2);
+        console.log(res.rows[0]);
+        const newRoomNum = res.rows[0].roomid;
+        console.log(newRoomNum)
+
+        //Aim테이블에 방장의 id에 본 목표를 넣음.
+       const query3 =
+        `insert into aim (userId, context,roomId, achieveCount, achieveCycle, curCycleCount)
+         values ('${roomHead}', '${roomContext}',${newRoomNum},0,${roomCycle},0)`;
+       
+        await client.query(query3);
         }
     
 }

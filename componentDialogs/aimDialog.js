@@ -64,12 +64,10 @@ class aimDialog extends ComponentDialog {
 
         return await step.prompt(CHOICE_PROMPT,'명령을 선택해주세요',['추가','삭제','수정']);
 
-
-
     }
 
     async detailStep(step){
-        console.log('Aim detailStpe 진입');
+        console.log('detailStpe 진입');
         step.values.choice = step.result;
 
         if(step.result.value ==='추가'){
@@ -77,11 +75,15 @@ class aimDialog extends ComponentDialog {
 
         }
         if(step.result.value ==='삭제'){
-
-            //목표 리스트 보여주는 함수 위치
+            //목표 리스트 보여주는 함수
+            var userName = step.context._activity.from.name;
+            var res = await database.queryShowAim(userName);
+            const rows = res.rows;
+            rows.map(row => {
+                step.context.sendActivity(`${this.showAimClear(row)}`);
+                console.log(this.showAimClear(row));
+            });
             return await step.prompt(TEXT_PROMPT,'삭제할 목표의 번호를 입력해주세요');
-
-
         }
         if(stpe.result.value === '수정'){
             //목표 리스트 보여주는 함수 위치
@@ -92,18 +94,18 @@ class aimDialog extends ComponentDialog {
     }
 
     async typingStep(step){
-
-        if(step.values.choice ==='추가'){
+        console.log("typingStep 진입!");
+        if(step.values.choice.value ==='추가'){
             context = step.result; //목표 내용이 저장됨
             return await step.prompt(TEXT_PROMPT,'목표 기간과 주기를 지정해주세요 예: 0월 0일 부터 0일 0일까지 0일마다');
         }
-        else if(step.values.choice ==='삭제'){
+        else if(step.values.choice.value ==='삭제'){
             aimNumber = step.result //삭제 리스트 번호가 저장됨
             return await step.continueDialog();
             
         }
 
-        else if(step.values.choice ==='수정'){
+        else if(step.values.choice.value ==='수정'){
             aimNumber = step.result //수정 리스트 번호가 저장됨
             return await step.prompt(CHOICE_PROMPT,'목표의 어느 부분을 수정하시겠어요?',['목표내용','기간','수행주기']);
 
@@ -177,7 +179,7 @@ class aimDialog extends ComponentDialog {
         if(step.values.choice.value ==='추가')
         {
 
-            return await step.prompt(CHOICE_PROMPT,`목표: ${context} \n 기간 :${entities.startTime_month}월 ${entities.startTime_day}일 부터 ${entities.endTime_month}월 ${entities.endTime_day}일 까지 \n 주기: ${entities.timeCycle} 맞습니까?`,['네','아니오']);
+            return await step.prompt(CHOICE_PROMPT,`목표: ${context}  \r\n 기간 :${entities.startTime_month}월 ${entities.startTime_day}일 부터 ${entities.endTime_month}월 ${entities.endTime_day}일 까지 \n 주기: ${entities.timeCycle} 맞습니까?`,['네','아니오']);
             
 
         }
@@ -199,14 +201,15 @@ class aimDialog extends ComponentDialog {
 
     }
 
-    async processStep(stpe){
+    async processStep(step){
 
 
         if(step.values.choice.value ==='추가')
         {
             if(step.result.value ==='네'){
                 console.log('목표 추가하는 디비함수');
-                database.
+                var userName = step.context._activity.from.name;
+                await database.queryInsertAim(entities,userName,context);
                 //추가하는 디비함수
                 //디비함수의 파라미터는 entities. 으로 보냄
 
@@ -229,7 +232,9 @@ class aimDialog extends ComponentDialog {
             if(step.result.value ==='네'){
 
                 console.log("삭제, 네 진입");
-                //await queryDeleteAim(aimNumber);//삭제 디비함수
+                var userName = step.context._activity.from.name;
+                //await database.queryIsInRoom(aimNumber,userName);
+                await database.queryDeleteAim(aimNumber,userName);//삭제 디비함수
                 endDialog = true;
                 return await step.endDialog();//dialog 종료
             }
@@ -262,8 +267,10 @@ class aimDialog extends ComponentDialog {
 
     }
 
-
-
+    showAimClear(row){
+        var msg = `aim id : ${row.aimid} room 목표 : ${row.context} \r\n 목표 주기 : ${row.achievecycle}일에 한번`;
+        return msg;
+    }
 
     async isDialogComplete() {
         return endDialog;
