@@ -4,13 +4,15 @@
 const { ComponentDialog, DialogSet, DialogTurnStatus, WaterfallDialog } = require('botbuilder-dialogs');
 const {aimDialog,AIM_DIALOG } = require('./aimDialog');
 const { roomDialog,ROOM_DIALOG } = require('./roomDialog');
+const { directDialog , DIRECT_DIALOG} = require('./DirectDialog)';
+
+
 
 const MAIN_DIALOG = 'MAIN_DIALOG';
 const WATERFALL_DIALOG = 'WATERFALL_DIALOG';
 const USER_PROFILE_PROPERTY = 'USER_PROFILE_PROPERTY';
 
 const { LuisRecognizer } = require('botbuilder-ai');
-
 const { ConfirmPrompt, ChoicePrompt, DateTimePrompt, NumberPrompt, TextPrompt } = require('botbuilder-dialogs');
 
 
@@ -43,6 +45,7 @@ class MainDialog extends ComponentDialog {
 
         this.addDialog(new aimDialog());
         this.addDialog(new roomDialog());
+        this.addDialog(new directDialog());
 
         this.addDialog(new WaterfallDialog(WATERFALL_DIALOG, [
 
@@ -76,7 +79,7 @@ class MainDialog extends ComponentDialog {
     async choiceStep(step) {
         endDialog = false;
         console.log('choiceStep 진입');
-        return await step.prompt(CHOICE_PROMPT, 'AIMY가 뭘 도와드릴까요?', ['ROOM', '목표', '스케줄확인']);
+        return await step.prompt(CHOICE_PROMPT, 'AIMY가 뭘 도와드릴까요?', ['ROOM', '목표', '스케줄확인','직접입력']);
 
     }
 
@@ -94,11 +97,17 @@ class MainDialog extends ComponentDialog {
             console.log('roomdialog 진입');
             return await step.beginDialog(ROOM_DIALOG);
         }
-        else {
+        else if(step.result.value==='스케줄확인'){
 
             //스케줄 출력
             database.queryResultSchedule()
             return '확인';
+        }
+        else if(step.result.value==='직접입력')
+        {
+            return await step.beginDialog(DIRECT_DIALOG);
+
+
         }
 
 

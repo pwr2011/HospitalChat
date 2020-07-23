@@ -251,7 +251,21 @@ class aimDialog extends ComponentDialog {
             
             if(step.result.value==='네'){
                 
-                //수정 디비 함수위치할곳
+                 //수정 디비 함수위치할곳
+                if(step.values.modifyWhat.value==='목표내용'){
+
+
+                }
+
+                else if(step.values.modifyWhat.value ==='기간'){
+
+
+                }
+                else if(step.values.modifyWhat.value ==='수행주기'){
+
+
+                }
+            
 
             }
            else if(step.result.value==='아니오'){
