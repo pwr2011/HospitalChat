@@ -179,7 +179,7 @@ class aimDialog extends ComponentDialog {
         if(step.values.choice.value ==='추가')
         {
 
-            return await step.prompt(CHOICE_PROMPT,`목표: ${context}  \r\n 기간 :${entities.startTime_month}월 ${entities.startTime_day}일 부터 ${entities.endTime_month}월 ${entities.endTime_day}일 까지 \n 주기: ${entities.timeCycle} 맞습니까?`,['네','아니오']);
+            return await step.prompt(CHOICE_PROMPT,`목표: ${context}  \r\n 기간 :${entities.startTime_month}월 ${entities.startTime_day}일 부터 ${entities.endTime_month}월 ${entities.endTime_day}일 까지 \r\n 주기: ${entities.timeCycle} 맞습니까?`,['네','아니오']);
             
 
         }
