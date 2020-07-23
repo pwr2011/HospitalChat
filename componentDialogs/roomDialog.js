@@ -179,6 +179,7 @@ class roomDialog extends ComponentDialog {
         var msg = `${row.userID}는 ${row.achieveCount/row.curCycleCount*100}% 달성중.`;
         return msg;
     }
+    
     async isDialogComplete() {
         console.log('몇번 돌아갈까요');
         return endDialog;

@@ -74,6 +74,7 @@ class MainDialog extends ComponentDialog {
     }
 
     async choiceStep(step) {
+        endDialog = false;
         console.log('choiceStep 진입');
         return await step.prompt(CHOICE_PROMPT, 'AIMY가 뭘 도와드릴까요?', ['ROOM', '목표', '스케줄확인']);
 
@@ -105,8 +106,13 @@ class MainDialog extends ComponentDialog {
 
 
     async finalStep(step) {
-
+        endDialog = true;
         return await step.endDialog();
+    }
+
+    async isEndDialog(){
+
+        return endDialog;
     }
 }
 

@@ -1,5 +1,5 @@
 const { ActivityHandler } = require('botbuilder');
-
+const {MainDialog} = require('../componentDialogs/mainDialog');
 class DialogBot extends ActivityHandler {
     constructor(conversationState, userState,dialog) {
         super();
@@ -17,8 +17,8 @@ class DialogBot extends ActivityHandler {
         this.userState = userState;
         this.dialog = dialog; // 최영진 
         this.dialogState = conversationState.createProperty("dialogState");
-
-       // this.makeDialog = new makeDialog(this.conversationState, this.userState);
+        this.MainDialog = new MainDialog(this.userState);
+       
 
         
 
@@ -54,10 +54,15 @@ class DialogBot extends ActivityHandler {
     }
     async run(context) {
         await super.run(context);
-
+        var isEnd = await this.MainDialog.isEndDialog();
         // Save any state changes. The load happened during the execution of the Dialog.
         await this.conversationState.saveChanges(context, false);
         await this.userState.saveChanges(context, false);
+        
+        if(isEnd)
+        {
+            await super.run(context);
+        }
     }
 
     // async sendwelcomeMessage(turnContext) {

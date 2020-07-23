@@ -40,7 +40,6 @@ class DB {
     async queryInsertAim(entities,userName,context) { //목표 넣기
         console.log("queryInsertSchedule 진입");
         //if(entities.AimyStartTime.realTime_hour.realTime ===) 존재하지 않는다면 현시간
-
         const query = `
         INSERT INTO aim
         (userId, context, startTimeMonth, startTimeDay,
@@ -51,6 +50,7 @@ class DB {
         ${entities.endTime_month},
         ${entities.endTime_day},0,
         ${entities.timeCycle},0);`;
+        console.log(query);
         
         return await client.query(query);
 

@@ -209,9 +209,11 @@ class aimDialog extends ComponentDialog {
             if(step.result.value ==='네'){
                 console.log('목표 추가하는 디비함수');
                 var userName = step.context._activity.from.name;
+                console.log(entities);
                 await database.queryInsertAim(entities,userName,context);
                 //추가하는 디비함수
                 //디비함수의 파라미터는 entities. 으로 보냄
+                console.log("추가완료!!!");
 
                 endDialog = true;
                 return await step.endDialog();//dialog 종료
