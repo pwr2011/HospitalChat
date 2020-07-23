@@ -4,7 +4,7 @@
 const { ComponentDialog, DialogSet, DialogTurnStatus, WaterfallDialog } = require('botbuilder-dialogs');
 const {aimDialog,AIM_DIALOG } = require('./aimDialog');
 const { roomDialog,ROOM_DIALOG } = require('./roomDialog');
-const { directDialog , DIRECT_DIALOG} = require('./DirectDialog)';
+const { directDialog , DIRECT_DIALOG} = require('./directDialog');
 
 
 
@@ -103,6 +103,7 @@ class MainDialog extends ComponentDialog {
             database.queryResultSchedule()
             return '확인';
         }
+
         else if(step.result.value==='직접입력')
         {
             return await step.beginDialog(DIRECT_DIALOG);

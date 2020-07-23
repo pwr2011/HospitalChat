@@ -40,6 +40,7 @@ class DB {
     async queryInsertAim(entities,userName,context) { //목표 넣기
         console.log("queryInsertSchedule 진입");
         //if(entities.AimyStartTime.realTime_hour.realTime ===) 존재하지 않는다면 현시간
+
         const query = `
         INSERT INTO aim
         (userId, context, startTimeMonth, startTimeDay,
@@ -50,7 +51,6 @@ class DB {
         ${entities.endTime_month},
         ${entities.endTime_day},0,
         ${entities.timeCycle},0);`;
-        console.log(query);
         
         return await client.query(query);
 
@@ -67,8 +67,47 @@ class DB {
 
     }
 
-    queryModifyAim(){//목표 수정
+    async queryModifyAimContext(aimId,context){//Context 수정
+        console.log("queryModifyAimContext 진입");
+        //if(entities.AimyStartTime.realTime_hour.realTime ===) 존재하지 않는다면 현시간
+        const query = `
+       UPDATE aim
+            SET context = '${context}' 
+            WHERE aimid =  ${aimId};
 
+        `;
+        
+        return await client.query(query);
+    }
+    async queryModifyAimTime(aimId,entities){//기간 수정
+        console.log("queryModifyAimTime 진입");
+        //if(entities.AimyStartTime.realTime_hour.realTime ===) 존재하지 않는다면 현시간
+        const query = `
+       UPDATE aim
+            SET 
+            starttimemonth = ${entities.startTime_month},
+            starttimeday = ${entities.startTime_day},
+            endtimemonth = ${entities.endTime_month},
+            endtimeday = ${entities.endTime_day} 
+            
+            WHERE aimid =  ${aimId};
+
+        `;
+        
+        return await client.query(query);
+
+    }
+    async queryModifyAimAchievecycle(aimId,context){//Achievecycle 수정
+        console.log("queryModifyAimAchievecycle 진입");
+        //if(entities.AimyStartTime.realTime_hour.realTime ===) 존재하지 않는다면 현시간
+        const query = `
+       UPDATE aim
+            SET achievecycle = ${context}
+            WHERE aimid =  ${aimId};
+
+        `;
+        
+        return await client.query(query);
 
     }
 

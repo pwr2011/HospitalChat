@@ -31,6 +31,8 @@ var entities; //루이스 엔티티
 var context; //목표내용
 var modifycontent;//수정할내용
 var aimNumber = -1 //목표 번호를 저장함 디폴트는 -1
+var luisResult;
+
 //db연결
 
 class aimDialog extends ComponentDialog {
@@ -80,13 +82,20 @@ class aimDialog extends ComponentDialog {
             var res = await database.queryShowAim(userName);
             const rows = res.rows;
             rows.map(row => {
-                step.context.sendActivity(`${this.showAimClear(row)}`);
-                console.log(this.showAimClear(row));
+                step.context.sendActivity(`${this.showAimClearAll(row)}`);
+                console.log(this.showAimClearAll(row));
             });
             return await step.prompt(TEXT_PROMPT,'삭제할 목표의 번호를 입력해주세요');
         }
-        if(stpe.result.value === '수정'){
+        if(step.result.value === '수정'){
             //목표 리스트 보여주는 함수 위치
+            var userName = step.context._activity.from.name;
+            var res = await database.queryShowAim(userName);
+            const rows = res.rows;
+            rows.map(row => {
+                step.context.sendActivity(`${this.showAimClearAll(row)}`);
+                console.log(this.showAimClearAll(row));
+            });
             return await step.prompt(TEXT_PROMPT,'수정할 목표의 번호를 입력해주세요');
 
         }
@@ -164,7 +173,7 @@ class aimDialog extends ComponentDialog {
             else if(step.result.value ==='수행주기'){
 
                 step.values.modifyWhat = step.result;
-                return await step.prompt(TEXT_PROMPT,'수행주기를 어떻게 수정할까요?');
+                return await step.prompt(NUMBER_PROMPT,'수행주기를 몇일로 수정할까요?');
 
 
             }
@@ -192,8 +201,13 @@ class aimDialog extends ComponentDialog {
 
        else if(step.values.choice.value ==='수정')
         {
-            modifycontent = step.result.value;
-            return await step.prompt(CHOICE_PROMPT,`${step.values.modifyWhat.value}을 ${modifycontent}로 바꾸는 것이 맞습니까?`,['네','아니오']);
+            modifycontent = step.result;
+            luisResult = await dispatchRecognizer.recognize(step.context);
+            console.log("luis pass!");
+            const intent =  LuisRecognizer.topIntent(luisResult);
+            console.log(intent);//intent 확인되었나
+            entities = luisResult.entities; 
+            return await step.prompt(CHOICE_PROMPT,`${step.values.modifyWhat.value}을 ${step.result}로 바꾸는 것이 맞습니까?`,['네','아니오']);
 
             
         }
@@ -251,19 +265,28 @@ class aimDialog extends ComponentDialog {
             
             if(step.result.value==='네'){
                 
-                 //수정 디비 함수위치할곳
+                
                 if(step.values.modifyWhat.value==='목표내용'){
-
+                    console.log("목표 내용 진입");
+                    
+                    await database.queryModifyAimContext(aimNumber,modifycontent);//수정 디비함수
+                    endDialog = true;
+                    return await step.endDialog();//dialog 종료
 
                 }
-
-                else if(step.values.modifyWhat.value ==='기간'){
-
-
+                else if(step.values.modifyWhat.value ==='기간'){;
+                
+                    await database.queryModifyAimTime(aimNumber,entities);
+                    console.log('수정완료');
+                    endDialog = true;
+                    return await step.endDialog();
                 }
                 else if(step.values.modifyWhat.value ==='수행주기'){
-
-
+                        //수행주기를 파라미터로 넘김
+                        
+                        await database.queryModifyAimAchievecycle(aimNumber,modifycontent.value);
+                        console.log('수정완료');
+                        return await step.endDialog();
                 }
             
 
@@ -288,6 +311,11 @@ class aimDialog extends ComponentDialog {
         return msg;
     }
 
+    showAimClearAll(row){
+        var msg = `aim id : ${row.aimid} 목표 : ${row.context} \r\n 목표 주기 : ${row.achievecycle}일에 한번
+        \r\n 시작일 : ${row.starttimemonth} 월 ${row.starttimeday}\r\n 종료일 :${row.endtimemonth} 월 ${row.endtimeday}`;
+        return msg;
+    }
     async isDialogComplete() {
         return endDialog;
     }
