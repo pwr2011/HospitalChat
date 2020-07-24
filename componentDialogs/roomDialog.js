@@ -94,16 +94,17 @@ class roomDialog extends ComponentDialog {
         step.values.secondChoice = step.result;
 
         if (step.values.firstChoice.value === '참가') {
-            return await step.prompt(CHOICE_PROMPT, `${step.result}방에 참가합니다!`,['네','아니요']);
+            return await step.prompt(CHOICE_PROMPT, `${step.result}번방에 참가합니다!`,['네','아니요']);
         }
         else if (step.values.firstChoice.value === '생성')  {
             return await step.prompt(NUMBER_PROMPT,'몇일에 한번씩 하실건가요?(숫자만 입력)');
         }
         else if (step.values.firstChoice.value === '삭제')  {    
-            return await step.prompt(CHOICE_PROMPT, `${step.result}방을 삭제합니다!`,['네','아니요']);
+            return await step.prompt(CHOICE_PROMPT, `${step.result}번방을 삭제합니다!`,['네','아니요']);
         }
         else{ //엿보기 결과 출력
             var res = await database.queryShowAchievePercentage(step.result);
+            console.log(res.rows);
             const rows = res.rows;
             rows.map(row => {
                 step.context.sendActivity(this.SeekRoomPercentage(row));
@@ -141,8 +142,9 @@ class roomDialog extends ComponentDialog {
         }
         else{ //삭제
             if(step.values.thirdChoice.value ==='네'){
-                database.queryDeleteAim(step.values.secondChoice.value);
-                await step.context.sendActivity(`${step.values.secondChoice.value}방이 삭제되었습니다!`);
+                console.log(step.values.secondChoice);
+                database.queryDeleteRoom(step.values.secondChoice);
+                await step.context.sendActivity(`${step.values.secondChoice}번방이 삭제되었습니다!`);
             }
             else{
                 await step.context.sendActivity('취소되었습니다.');
@@ -176,7 +178,7 @@ class roomDialog extends ComponentDialog {
     }
 
     SeekRoomPercentage(row){
-        var msg = `${row.userID}는 ${row.percentage}% 달성중.`;
+        var msg = `${row.userid}는 ${row.percentage}% 달성중.`;
         return msg;
     }
     

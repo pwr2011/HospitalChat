@@ -68,7 +68,16 @@ class DB {
         return await client.query(query);
 
     }
-    
+
+    //방을 지우는 쿼리
+    //aim table에서 roomId가 지우려는 방과 같은 aim을 전부 삭제한다.
+    async queryDeleteRoom(roomNum){
+        console.log("queryDeleteRoom 진입!");
+        const query = `delete from aim where roomid = ${roomNum};
+        delete from room where roomid = ${roomNum};`;
+        await client.query(query);
+    }
+
     async queryDeleteAim(aimNumber,userName){ //목표 삭제
         console.log("queryDeleteAim 진입");
         //지우려는 목표가 목표방에 있는 목표라면 headId가 나의 Id가 같은지 확인한다.
@@ -137,7 +146,7 @@ class DB {
     }
     async queryModifyAimAchievecycle(aimId,context){//Achievecycle 수정
         console.log("queryModifyAimAchievecycle 진입");
-        //if(entities.AimyStartTime.realTime_hour.realTime ===) 존재하지 않는다면 현시간
+        console.log(aimId,context);
         const query = `
        UPDATE aim
             SET achievecycle = ${context}
@@ -155,10 +164,27 @@ class DB {
         return await client.query(query);
     }
     async queryRoomEnter(userName,roomNum){ // roomNum방으로 들어가기
-        console.log('queryShowRoomEntered 진입!');
+        console.log('queryRoomEntered 진입!');
+        const query0 = `select context,achieveCycle from room where roomId = ${roomNum};`;
+        
+        var res = await client.query(query0);
+        console.log(res);
+        const rows = res.rows;
+        console.log(rows[0]);
+        var roomContext = rows[0].context;
+        var roomCycle = rows[0].achievecycle;
+
+        var startTime = new Date();
+        var deadline = new Date();
+        var month = startTime.getMonth()+1;
+        var date = startTime.getDate();
+        deadline.setDate(date+roomCycle);
+        
         const query = `update room set enteredId = array_append(enteredId,'${userName}')
-        where roomId = ${roomNum}`;
-        await client.query(query);
+        where roomId = ${roomNum};
+        insert into aim (userId, context, roomid, deadline, starttimemonth, starttimeday, achieveCount, achieveCycle, curCycleCount)
+        values ('${userName}', '${roomContext}',${roomNum},'2020-${deadline.getMonth()+1}-${deadline.getDate()}',${month} , ${date} ,0,${roomCycle},0)`;
+        return await client.query(query);
     }
  
     async queryShowRoomEntered(userName){//자신이 head인 방의 정보 불러오기
@@ -176,10 +202,16 @@ class DB {
     async queryJoinRoom(userName, roomNum,roomContext, roomCycle){
         console.log('queryJoinRoom 진입!');
         
+        var startTime = new Date();
+        var deadline = new Date();
+        var month = startTime.getMonth()+1;
+        var date = startTime.getDate();
+        deadline.setDate(date+roomCycle);
+        
         const query = `update room set enteredId = array_append(enteredId,'${userName}')
         where roomId = ${roomNum};
-        insert into aim (userId, context, achieveCount, achieveCycle, curCycleCount)
-        values ('${userName}', '${roomContext}',0,${roomCycle},0)`;
+        insert into aim (userId, context, roomid, deadline, starttimemonth, starttimeday, achieveCount, achieveCycle, curCycleCount)
+        values ('${userName}', '${roomContext}',${roomNum},'2020-${deadline.getMonth()+1}-${deadline.getDate()}',${month} , ${date} ,0,${roomCycle},0)`;
         return await client.query(query);
     }
 
@@ -224,8 +256,8 @@ class DB {
 
         async queryShowAchievePercentage(roomNumber){
 
-            const query = `select percentage from aim where roomid = ${roomNumber}`;
-            await client.query(query);
+            const query = `select userId, percentage from aim where roomid = ${roomNumber}`;
+            return await client.query(query);
         }
     
 
