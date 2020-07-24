@@ -8,7 +8,7 @@ const { directDialog , DIRECT_DIALOG} = require('./directDialog');
 const { checkDialog, CHECK_DIALOG} = require('./checkDialog');
 
 
-
+const {database} = require('../DBconnect'); 
 const MAIN_DIALOG = 'MAIN_DIALOG';
 const WATERFALL_DIALOG = 'WATERFALL_DIALOG';
 const USER_PROFILE_PROPERTY = 'USER_PROFILE_PROPERTY';
@@ -102,8 +102,16 @@ class MainDialog extends ComponentDialog {
         else if(step.result.value==='스케줄확인'){
 
             //스케줄 출력
-            database.queryResultSchedule()
-            return '확인';
+            var userName = step.context._activity.from.name;
+            var res = await database.queryShowAim(userName);
+            const rows = res.rows;
+            rows.map(row => {
+                step.context.sendActivity(`${this.showAimClearAll(row)}`);
+                console.log(this.showAimClearAll(row));
+            });
+
+            return step.continueDialog();
+            
         }
 
         else if(step.result.value==='직접입력')
@@ -128,6 +136,13 @@ class MainDialog extends ComponentDialog {
     async isEndDialog(){
 
         return endDialog;
+    }
+
+    showAimClearAll(row){
+        var msg = `aim id : ${row.aimid} 목표 : ${row.context} \r\n 목표 주기 : ${row.achievecycle}일에 한번
+        \r\n 시작일 : ${row.starttimemonth} 월 ${row.starttimeday}\r\n 종료일 :${row.endtimemonth} 월 ${row.endtimeday} \r\n
+        목표달성률: ${row.percentage}%`;
+        return msg;
     }
 }
 

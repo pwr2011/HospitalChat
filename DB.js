@@ -208,26 +208,30 @@ class DB {
     
 
         async queryGetPercentageGroup(aimNumber){
-            
-            const query = `select achieveCount, deadline, achieveCycle starttimeday from aim where aimId = ${aimNumber}`;
+            console.log('전달한 aimNumber값');
+            console.log(aimNumber);
+            const query = `select achievecount, deadline, achievecycle, starttimeday,starttimemonth from aim where aimid = ${aimNumber}`;
             return await client.query(query);
         }
     
         async querySetPercentage(aimNumber,percentage){
-            const query = `UPDATE aim SET percentage = ${percentage} where aimId = ${aimNumber}`;
+            console.log('함수진입');
+          
+            
+            const query = `UPDATE aim SET percentage = ${percentage} where aimid = ${aimNumber}`;
             await client.query(query);
         }
 
-        async queryShowAchievePercentage(aimNumber){
+        async queryShowAchievePercentage(roomNumber){
 
-            const query = `select percentage from aim where aimId = ${aimNumber}`;
+            const query = `select percentage from aim where roomid = ${roomNumber}`;
             await client.query(query);
         }
     
 
         //목표 마감기한 set
         async querySetDeadline(aimNumber,deadline){
-            //deadline 은 일수로 들어오므로 바꿔줘야함
+            
             console.log('querySetDeadline진입');
             console.log(deadline);
 

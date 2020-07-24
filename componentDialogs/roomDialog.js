@@ -56,10 +56,10 @@ class roomDialog extends ComponentDialog {
     async secondStep(step) {
         console.log('secondStep 진입');
         step.values.firstChoice = step.result;
-
+        var res = await database.queryShowAllRoom();
+        const rows = res.rows;
         if (step.values.firstChoice.value === '참가') {
-            var res = await database.queryShowAllRoom();
-            const rows = res.rows;
+      
             rows.map(row => {
                 console.log(row);
                 step.context.sendActivity(`${this.ShowRoomClear(row)}`);
@@ -71,7 +71,7 @@ class roomDialog extends ComponentDialog {
             return await step.prompt(TEXT_PROMPT, '방의 목표를 입력해 주세요!');
         }
         else if (step.values.firstChoice.value === '삭제') {
-            database.queryShowRoomEntered(userName);
+         
             rows.map(row => {
                 step.context.sendActivity(this.ShowRoomClear(row));
                 console.log(this.ShowRoomClear(row));
@@ -79,7 +79,7 @@ class roomDialog extends ComponentDialog {
             return await step.prompt(NUMBER_PROMPT, '몇번방을 삭제하실건가요?');
         }
         else { //엿보기
-            database.queryShowRoomEntered(userName);
+          
             rows.map(row => {
                 step.context.sendActivity(this.ShowRoomClear(row));
                 console.log(this.ShowRoomClear(row));
@@ -103,7 +103,7 @@ class roomDialog extends ComponentDialog {
             return await step.prompt(CHOICE_PROMPT, `${step.result}방을 삭제합니다!`,['네','아니요']);
         }
         else{ //엿보기 결과 출력
-            var res = database.queryShowAchievePercentage(step.result);
+            var res = await database.queryShowAchievePercentage(step.result);
             const rows = res.rows;
             rows.map(row => {
                 step.context.sendActivity(this.SeekRoomPercentage(row));
