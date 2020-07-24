@@ -1,5 +1,9 @@
+//챗봇과 데이터베이스간의 통신을 위한 쿼리를 구현해놓은 파일이다.
+
+//postgresql을 사용하기 위한 require
 const pg = require('pg');
 
+//postgresql server와 연결하기 위한 변수
 const config = {
     host: 'team27-server.postgres.database.azure.com',
     user: 'inha16@team27-server',
@@ -11,17 +15,9 @@ const config = {
 
 const client = new pg.Client(config);
 
-var moment = require('moment');
-const { ConsoleTranscriptLogger } = require('botbuilder');
-require('moment-timezone');
-moment.tz.setDefault("Asia/Seoul");
-var month = moment().format('MM');
-var day = moment().format('DD');
-var hour = moment().format('HH');
-var minute = moment().format('mm');
-
 class DB {
     constructor() {
+        //서버와 연결되었는지 확인하기 위한 함수
         client.connect(err => {
             if (err) throw err;
             else {
@@ -30,29 +26,23 @@ class DB {
         });
     }
 
-    
-    async queryShowAim(userNum){ //userNum이 가지고 있는 모든 목표 보여주기
-        console.log("queryShowAim 진입!");
+    //userNum이 가지고 있는 모든 목표 보여주기
+    async queryShowAim(userNum){ 
         const query = `select * from aim where userId = '${userNum}'`;
-        console.log(query);
         return await client.query(query);
     }
 
-    async queryInsertAim(entities,userName,context) { //목표 넣기
-        console.log("queryInsertSchedule 진입");
-        //if(entities.AimyStartTime.realTime_hour.realTime ===) 존재하지 않는다면 현시간
+    //userName에게 개인 목표 넣기
+    async queryInsertAim(entities,userName,context) { 
+
+        //deadline값을 넣기 위한 date()
+        //첫번째 마감일은 처음 시작일에서 시작 주기를 더한 것
         var deadline = new Date();
         deadline.setFullYear(2020,parseInt(entities.startTime_month[0])-1,parseInt(entities.startTime_day[0]));
-        console.log('변경전');
-        console.log(deadline);
-    
-        deadline.setDate(deadline.getDate()+parseInt(entities.timeCycle[0])); //첫번째 마감일은 처음 시작일에서 시작 주기를 더한 것
-  
-        console.log('deadline 추가:')
-        console.log(deadline);
-
+        deadline.setDate(deadline.getDate()+parseInt(entities.timeCycle[0])); 
         var trimmedDeadline = await this.trimmed(JSON.stringify(deadline));
-        console.log(trimmedDeadline);
+
+        //insert query
         const query = `
         INSERT INTO aim
         (userId, context, startTimeMonth, startTimeDay,
@@ -64,71 +54,64 @@ class DB {
         ${entities.endTime_day},0,
         ${entities.timeCycle},0,0,'${trimmedDeadline}');`;
         
-        console.log('추가완료');
         return await client.query(query);
-
     }
 
     //방을 지우는 쿼리
     //aim table에서 roomId가 지우려는 방과 같은 aim을 전부 삭제한다.
     async queryDeleteRoom(roomNum){
-        console.log("queryDeleteRoom 진입!");
+        
         const query = `delete from aim where roomid = ${roomNum};
         delete from room where roomid = ${roomNum};`;
         await client.query(query);
     }
 
-    async queryDeleteAim(aimNumber,userName){ //목표 삭제
-        console.log("queryDeleteAim 진입");
-        //지우려는 목표가 목표방에 있는 목표라면 headId가 나의 Id가 같은지 확인한다.
-        //그리고 내가 방장이라면 목표방에 있는 모든 사람들의 해당목표를 삭제한다
-        //구현완료.
-        
+    //지우려는 목표가 목표방에 있는 목표라면 headId가 나의 Id가 같은지 확인한다.
+    //그리고 내가 방장이라면 목표방에 있는 모든 사람들의 해당목표를 삭제한다
+    async queryDeleteAim(aimNumber,userName){
+
         const query1 = `select roomId from aim where aimId = ${aimNumber}`;
         var res1 = await client.query(query1);
         const rows1 = res1.rows;
         res1=(rows1[0].roomid);
-        console.log(res1);
-        if(res1 == null){ //목표방에 있는 목표가 아님 -> 그 목표만 삭제
-            console.log("enter 1");
+
+        //목표방에 있는 목표가 아님 -> 그 목표만 삭제
+        if(res1 == null){ 
             const query2 = `delete from aim where aimId = ${aimNumber}`;
             await client.query(query2);
         }
-        else{ //목표방에 있는거니 목표방의 headid와 자신의 id비교
-            console.log("enter 2");
+
+        //목표방에 있는거니 목표방의 headid와 자신의 id비교
+        else{ 
             const query2 = `select headId from room where roomId = ${res1}`;
             var res2 = await client.query(query2);
             const rows2 = res2.rows;
             res2 = rows2[0].headid;
-            console.log(res2);
-            if(res2 == userName){  //내가 head
-                console.log("enter 3");
+
+            //지금 user가 방장인 경우
+            if(res2 == userName){ 
                 const query3 = `delete from aim where roomId = ${res1}`;
                 await client.query(query3);
             }
             else{
-                console.log("enter 4");
                 const query3 = `delete from aim where aimId = ${aimNumber}`;
                 await client.query(query3);
             }
         }
     }
 
-    async queryModifyAimContext(aimId,context){//Context 수정
-        console.log("queryModifyAimContext 진입");
-        //if(entities.AimyStartTime.realTime_hour.realTime ===) 존재하지 않는다면 현시간
+    //Context 수정
+    async queryModifyAimContext(aimId,context){
         const query = `
        UPDATE aim
             SET context = '${context}' 
             WHERE aimid =  ${aimId};
-
         `;
-        
         return await client.query(query);
     }
-    async queryModifyAimTime(aimId,entities){//기간 수정
-        console.log("queryModifyAimTime 진입");
-        //if(entities.AimyStartTime.realTime_hour.realTime ===) 존재하지 않는다면 현시간
+
+    //기간 수정
+    async queryModifyAimTime(aimId,entities){
         const query = `
        UPDATE aim
             SET 
@@ -136,41 +119,34 @@ class DB {
             starttimeday = ${entities.startTime_day},
             endtimemonth = ${entities.endTime_month},
             endtimeday = ${entities.endTime_day} 
-            
             WHERE aimid =  ${aimId};
-
         `;
         
         return await client.query(query);
-
     }
-    async queryModifyAimAchievecycle(aimId,context){//Achievecycle 수정
-        console.log("queryModifyAimAchievecycle 진입");
-        console.log(aimId,context);
+
+    //Achievecycle 수정
+    async queryModifyAimAchievecycle(aimId,context){
         const query = `
        UPDATE aim
             SET achievecycle = ${context}
             WHERE aimid =  ${aimId};
-
-        `;
-        
+        `;        
         return await client.query(query);
-
     }
 
+    //모든 방을 보여줌
     async queryShowAllRoom(){
-        console.log('queryShowAllRoom 진입!');
         const query = `select * from room`;
         return await client.query(query);
     }
-    async queryRoomEnter(userName,roomNum){ // roomNum방으로 들어가기
-        console.log('queryRoomEntered 진입!');
+
+    // roomNum번방으로 들어가기
+    async queryRoomEnter(userName,roomNum){ 
         const query0 = `select context,achieveCycle from room where roomId = ${roomNum};`;
         
         var res = await client.query(query0);
-        console.log(res);
         const rows = res.rows;
-        console.log(rows[0]);
         var roomContext = rows[0].context;
         var roomCycle = rows[0].achievecycle;
 
@@ -187,21 +163,21 @@ class DB {
         return await client.query(query);
     }
  
-    async queryShowRoomEntered(userName){//자신이 head인 방의 정보 불러오기
+    //자신이 head인 방의 정보 불러오기
+    async queryShowRoomEntered(userName){
         const query = `select * from room where headId = '${userName}'`;
         return await client.query(query);
     }
 
-
+    //roomNum번 방의 정보 불러오기
     async queryRoomInfo(roomNum){
-        console.log('queryRoomInfo 진입!');
         const getInfoQuery = `select context, achieveCycle from room where roomId = ${roomNum}`;
 
         return await client.query(getInfoQuery);
     }
+
+    //roomNum번 방에 들어가기
     async queryJoinRoom(userName, roomNum,roomContext, roomCycle){
-        console.log('queryJoinRoom 진입!');
-        
         var startTime = new Date();
         var deadline = new Date();
         var month = startTime.getMonth()+1;
@@ -215,9 +191,9 @@ class DB {
         return await client.query(query);
     }
 
+    //room만들기
     async queryMakeRoom(roomContext, roomCycle, roomHead) {
-        console.log('queryMakeRoom 진입!');
-        const query1 = //목표방에서는 일정이 사용되지 않기에 일단 안집어넣음
+        const query1 =
             `insert into room (headId, context, achieveCycle,enteredId)
           values ('${roomHead}', '${roomContext}',${roomCycle},'{${roomHead}}');`
         const query2 = `select * from room where headId = '${roomHead}' and context = '${roomContext}'`;
@@ -226,9 +202,7 @@ class DB {
         
         //새로생긴 룸 넘버를 알기위한 중간쿼리
         var res = await client.query(query2);
-        console.log(res.rows[0]);
         const newRoomNum = res.rows[0].roomid;
-        console.log(newRoomNum)
 
         //Aim테이블에 방장의 id에 본 목표를 넣음.
        const query3 =
@@ -238,46 +212,37 @@ class DB {
         await client.query(query3);
         }
     
-
+        //aimNumber번 방에 있는 사람들의 성취율 확인하기
         async queryGetPercentageGroup(aimNumber){
-            console.log('전달한 aimNumber값');
-            console.log(aimNumber);
             const query = `select achievecount, deadline, achievecycle, starttimeday,starttimemonth from aim where aimid = ${aimNumber}`;
             return await client.query(query);
         }
     
-        async querySetPercentage(aimNumber,percentage){
-            console.log('함수진입');
-          
-            
-            const query = `UPDATE aim SET percentage = ${percentage} where aimid = ${aimNumber}`;
+        //aimNumber번 목표의 퍼센트 갱신
+        async querySetPercentage(aimNumber,percentage){const query = `UPDATE aim SET percentage = ${percentage} where aimid = ${aimNumber}`;
             await client.query(query);
         }
 
+        //aimNumber번 방에 있는 사람들의 성취율 확인하기
         async queryShowAchievePercentage(roomNumber){
-
             const query = `select userId, percentage from aim where roomid = ${roomNumber}`;
             return await client.query(query);
         }
     
 
-        //목표 마감기한 set
+        //목표 마감기한 설정하기
         async querySetDeadline(aimNumber,deadline){
-            
-            console.log('querySetDeadline진입');
-            console.log(deadline);
-
             const query = `UPDATE aim SET deadline = ${deadline} where aimId = ${aimNumber}`;
             client.query(query);
         }
-        //목표 달성횟수 set
+
+        //목표 달성횟수 설정하기
         async querySetAchieveCount(aimNumber,achieveCount){
             const query = `UPDATE aim SET achievecount = ${achieveCount} where aimId = ${aimNumber}`;
             client.query(query);
-
         }
 
-
+        //문자열 관리하기 위한 함수
         trimmed(context)
         {
             return context.substring(1,11);

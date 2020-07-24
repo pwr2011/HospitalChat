@@ -67,7 +67,6 @@ class aimDialog extends ComponentDialog {
 
     //목표에 대해 추가 ,삭제, 수정 중 하나 선택
     async choiceStep(step) {
-        console.log('Aim choiceStpe 진입');
         endDialog = false;
 
         //Choice prompt로 선택지를 제공한다.
@@ -76,13 +75,11 @@ class aimDialog extends ComponentDialog {
 
     //목표에 대한 추가 삭제 수정에 따라 필요한 값들을 받는 step
     async detailStep(step) {
-        console.log('detailStpe 진입');
 
         //이전 단계에서 Choice_prompt로 전달받은 결과를 step.values.choice에 저장한다.
         step.values.choice = step.result;
 
         if (step.result.value === '추가') {
-            console.log('추가 진입');
 
             //Text_prompt로 어떤 목표를 추가할지 입력받는다.
             return await step.prompt(TEXT_PROMPT, '어떤 목표를 추가할까요?');
@@ -90,7 +87,6 @@ class aimDialog extends ComponentDialog {
 
         else if (step.result.value === '삭제') {
             //목표 리스트 보여주는 함수
-            console.log('삭제 중');
 
             //유저의 고유 아이디를 가져옴
             //유저의 고유 아이디를 이용하여 유저의 목표 목록을 보여줌
@@ -99,7 +95,6 @@ class aimDialog extends ComponentDialog {
             const rows = res.rows;
             rows.map(row => {
                 step.context.sendActivity(`${this.showAimClearAll(row)}`);
-                console.log(this.showAimClearAll(row));
             });
 
             //Text_prompt로 삭제할 목표의 번호를 입력받는다.
@@ -107,7 +102,6 @@ class aimDialog extends ComponentDialog {
         }
 
         else if (step.result.value === '수정') {
-            console.log('수정 중');
 
             //유저의 고유 아이디를 가져옴
             //유저의 고유 아이디를 이용하여 유저의 목표 목록을 보여줌
@@ -116,7 +110,6 @@ class aimDialog extends ComponentDialog {
             const rows = res.rows;
             rows.map(row => {
                 step.context.sendActivity(`${this.showAimClearAll(row)}`);
-                console.log(this.showAimClearAll(row));
             });
 
             //목표 목록을 보고 수정할 목표 번호를 text prompt로 받는다.
@@ -126,7 +119,6 @@ class aimDialog extends ComponentDialog {
 
     //추가인 경우 사용자가 직접 텍스트를 입력하여 목표기간을 입력하고, 수정인 경우 수정할 부분을 선택하도록 하는 step
     async typingStep(step) {
-        console.log("typingStep 진입!");
 
         if (step.values.choice.value === '추가') {
 
@@ -157,8 +149,7 @@ class aimDialog extends ComponentDialog {
     async secondChoice(step) {
 
         if (step.values.choice.value === '추가') {
-            console.log('텍스트 루이스를 이용해 분석');
-
+            
             //recognize함수를 이용하여 입력받은 값들을 분리한다.
             const luisResult = await dispatchRecognizer.recognize(step.context);
             const intent = LuisRecognizer.topIntent(luisResult);
@@ -167,13 +158,11 @@ class aimDialog extends ComponentDialog {
             //intent가 제대로 입력되었는지 확인한다.
             if (intent === 'Add') {
 
-                console.log('루이스 정상');
                 return await step.continueDialog();
             }
 
             //제대로 luis가 입력받지 못했다면 dialog를 종료한다.
             else if (intent === 'None') {
-                console.log('해당 intent 존재 하지 않음!');
                 await step.context.sendActivity('유효하지 않은 기간 설정입니다.');
                 endDialog = true;
                 return await step.endDialog();
@@ -188,7 +177,6 @@ class aimDialog extends ComponentDialog {
         else if (step.values.choice.value === '수정') {
 
             if (step.result.value === '목표내용') {
-                console.log('수정->목표내용');
 
                 //어떤 부분을 수정할지는 modifyWhat 에 저장함
                 step.values.modifyWhat = step.result;
@@ -198,7 +186,6 @@ class aimDialog extends ComponentDialog {
             }
 
             else if (step.result.value === '기간') {
-                console.log('수정->기간');
 
                 //어떤 부분을 수정할지는 modifyWhat 에 저장함
                 step.values.modifyWhat = step.result;
@@ -208,8 +195,7 @@ class aimDialog extends ComponentDialog {
 
             }
             else if (step.result.value === '수행주기') {
-                console.log('수정->수행주기');
-
+                
                 //어떤 부분을 수정할지는 modifyWhat 에 저장함
                 step.values.modifyWhat = step.result;
 

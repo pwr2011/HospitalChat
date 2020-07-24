@@ -40,7 +40,7 @@ class checkDialog extends ComponentDialog {
 
     // user의 목표들을 보여준 후, 완료한 목표를 선택하게 한다.
     async selectStep(step) {
-        console.log("selectStep 진입");
+        
         endDialog = false;
 
         //query 실행을 위한 userName을 저장한다.
@@ -58,7 +58,6 @@ class checkDialog extends ComponentDialog {
 
 
     async processStep(step) {
-        console.log('processStep 진입');
 
         //roomNumber 함수에 전 step의 결과를 저장한다.
         roomNumber = step.result;
