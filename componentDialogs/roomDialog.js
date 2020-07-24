@@ -176,7 +176,7 @@ class roomDialog extends ComponentDialog {
     }
 
     SeekRoomPercentage(row){
-        var msg = `${row.userID}는 ${row.achieveCount/row.curCycleCount*100}% 달성중.`;
+        var msg = `${row.userID}는 ${row.percentage}% 달성중.`;
         return msg;
     }
     

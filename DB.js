@@ -12,6 +12,7 @@ const config = {
 const client = new pg.Client(config);
 
 var moment = require('moment');
+const { ConsoleTranscriptLogger } = require('botbuilder');
 require('moment-timezone');
 moment.tz.setDefault("Asia/Seoul");
 var month = moment().format('MM');
@@ -40,18 +41,28 @@ class DB {
     async queryInsertAim(entities,userName,context) { //목표 넣기
         console.log("queryInsertSchedule 진입");
         //if(entities.AimyStartTime.realTime_hour.realTime ===) 존재하지 않는다면 현시간
+        var deadline = new Date();
+        deadline.setFullYear(2020,parseInt(entities.startTime_month[0])-1,parseInt(entities.startTime_day[0]));
+        console.log('변경전');
+        console.log(deadline);
+    
+        deadline.setDate(deadline.getDate()+parseInt(entities.timeCycle[0]));
+  
+        console.log('deadline 추가:')
+        console.log(deadline);
 
         const query = `
         INSERT INTO aim
         (userId, context, startTimeMonth, startTimeDay,
-            endTimeMonth,endTimeDay,achieveCount,achieveCycle, curCycleCount) VALUES
+            endTimeMonth,endTimeDay,achieveCount,achieveCycle, curCycleCount,percentage,deadline) VALUES
         ('${userName}', '${context}',
         ${entities.startTime_month},
         ${entities.startTime_day},
         ${entities.endTime_month},
         ${entities.endTime_day},0,
-        ${entities.timeCycle},0);`;
+        ${entities.timeCycle},0,0,${Timestamp(deadline)});`;
         
+        console.log('추가완료');
         return await client.query(query);
 
     }
@@ -60,11 +71,36 @@ class DB {
         console.log("queryDeleteAim 진입");
         //지우려는 목표가 목표방에 있는 목표라면 headId가 나의 Id가 같은지 확인한다.
         //그리고 내가 방장이라면 목표방에 있는 모든 사람들의 해당목표를 삭제한다
-        //구현해야함.
-        const query1 = `select * from aim where aimId = ${aimNumber}`;
-        const query2 = `delete from aim where aimId = ${aimNumber} and userId = '${userName}'`;
-        return await client.query(query);
-
+        //구현완료.
+        
+        const query1 = `select roomId from aim where aimId = ${aimNumber}`;
+        var res1 = await client.query(query1);
+        const rows1 = res1.rows;
+        res1=(rows1[0].roomid);
+        console.log(res1);
+        if(res1 == null){ //목표방에 있는 목표가 아님 -> 그 목표만 삭제
+            console.log("enter 1");
+            const query2 = `delete from aim where aimId = ${aimNumber}`;
+            await client.query(query2);
+        }
+        else{ //목표방에 있는거니 목표방의 headid와 자신의 id비교
+            console.log("enter 2");
+            const query2 = `select headId from room where roomId = ${res1}`;
+            var res2 = await client.query(query2);
+            const rows2 = res2.rows;
+            res2 = rows2[0].headid;
+            console.log(res2);
+            if(res2 == userName){  //내가 head
+                console.log("enter 3");
+                const query3 = `delete from aim where roomId = ${res1}`;
+                await client.query(query3);
+            }
+            else{
+                console.log("enter 4");
+                const query3 = `delete from aim where aimId = ${aimNumber}`;
+                await client.query(query3);
+            }
+        }
     }
 
     async queryModifyAimContext(aimId,context){//Context 수정
@@ -122,8 +158,7 @@ class DB {
         where roomId = ${roomNum}`;
         await client.query(query);
     }
-    async queryShowAchievePercentage(){}
-
+ 
     async queryRoomInfo(roomNum){
         console.log('queryRoomInfo 진입!');
         const getInfoQuery = `select context, achieveCycle from room where roomId = ${roomNum}`;
@@ -163,5 +198,35 @@ class DB {
         await client.query(query3);
         }
     
+
+        async queryGetPercentageGroup(aimNumber){
+            
+            const query = `select achieveCount, deadline, achieveCycle starttimeday from aim where aimId = ${aimNumber}`;
+            return await client.query(query);
+        }
+    
+        async querySetPercentage(aimNumber,percentage){
+            const query = `UPDATE aim SET percentage = ${percentage} where aimId = ${aimNumber}`;
+            await client.query(query);
+        }
+
+        async queryShowAchievePercentage(aimNumber){
+
+            const query = `select percentage from aim where aimId = ${aimNumber}`;
+            await client.query(query);
+        }
+    
+
+        //목표 마감기한 set
+        async querySetDeadline(aimNumber,deadline){
+            const query = `UPDATE aim SET deadline = ${deadline} where aimId = ${aimNumber}`;
+            client.query(query);
+        }
+        //목표 달성횟수 set
+        async querySetAchieveCount(aimNumber,achieveCount){
+            const query = `UPDATE aim SET achievecount = ${achieveCount} where aimId = ${aimNumber}`;
+            client.query(query);
+
+        }
 }
 module.exports.DB = DB;

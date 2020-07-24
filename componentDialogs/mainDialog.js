@@ -5,6 +5,7 @@ const { ComponentDialog, DialogSet, DialogTurnStatus, WaterfallDialog } = requir
 const {aimDialog,AIM_DIALOG } = require('./aimDialog');
 const { roomDialog,ROOM_DIALOG } = require('./roomDialog');
 const { directDialog , DIRECT_DIALOG} = require('./directDialog');
+const { completeDialog, COMPLETE_DIALOG} = require('./completeDialog');
 
 
 
@@ -46,7 +47,8 @@ class MainDialog extends ComponentDialog {
         this.addDialog(new aimDialog());
         this.addDialog(new roomDialog());
         this.addDialog(new directDialog());
-
+        this.addDialog(new completeDialog());
+        
         this.addDialog(new WaterfallDialog(WATERFALL_DIALOG, [
 
         this.choiceStep.bind(this),
@@ -79,7 +81,7 @@ class MainDialog extends ComponentDialog {
     async choiceStep(step) {
         endDialog = false;
         console.log('choiceStep 진입');
-        return await step.prompt(CHOICE_PROMPT, 'AIMY가 뭘 도와드릴까요?', ['ROOM', '목표', '스케줄확인','직접입력']);
+        return await step.prompt(CHOICE_PROMPT, 'AIMY가 뭘 도와드릴까요?', ['ROOM', '목표', '스케줄확인','직접입력','목표완료']);
 
     }
 
@@ -110,7 +112,10 @@ class MainDialog extends ComponentDialog {
 
 
         }
+        else if(step.result.value==='목표완료'){
 
+            return await step.beginDialog(COMPLETE_DIALOG);
+        }
 
     }
 
