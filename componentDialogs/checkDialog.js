@@ -59,11 +59,11 @@ class checkDialog extends ComponentDialog {
 
     async processStep(step) {
 
-        //roomNumber 함수에 전 step의 결과를 저장한다.
-        roomNumber = step.result;
+        //aimNumber 변수에 전 step의 결과를 저장한다.
+        var aimNumber = step.result;
 
-        // roomNumber번 방에 들어있는 모든 사람들의 달성률을 보여준다.
-        var res = await database.queryGetPercentageGroup(roomNumber);
+        // aimNumber번 목표의 정보를 가져온다.
+        var res = await database.queryGetPercentageGroup(aimNumber);
         const rows = res.rows;
 
         //query결과에서 curCount, deadline, achieveCycle
@@ -83,7 +83,6 @@ class checkDialog extends ComponentDialog {
 
         //현재 날짜와 deadline 날짜를 비교하여 실제로 count가 되는지 확인한다.
         if (cur_time.getTime() > deadObj.getTime()) {
-
             //현재시간과 deadline의 시간차이를 계산한다.
             var betweenDay = parseInt((cur_time.getTime() - deadObj.getTime()) / makeDay);
 
@@ -98,6 +97,7 @@ class checkDialog extends ComponentDialog {
             
             // 성취율을 100%가 넘는것을 막기위한 if-else
             if (betweenDay < res_cycle) {
+                console.log('ff');
 
                 //성취 카운트 +1 갱신
                 await database.querySetAchieveCount(aimNumber, res_curCount + 1); 
@@ -107,6 +107,7 @@ class checkDialog extends ComponentDialog {
                 await database.querySetDeadline(aimNumber, deadObj);
             }
             else {
+                console.log('ff2');
                 
                 //정해진 주기안에 1번 초과를 달성하려고 할때 들어오게 된다.
                 await step.context.sendActivity('거짓말은 용인될 수 없습니다');
