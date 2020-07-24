@@ -5,7 +5,7 @@ const { ComponentDialog, DialogSet, DialogTurnStatus, WaterfallDialog } = requir
 const {aimDialog,AIM_DIALOG } = require('./aimDialog');
 const { roomDialog,ROOM_DIALOG } = require('./roomDialog');
 const { directDialog , DIRECT_DIALOG} = require('./directDialog');
-const { completeDialog, COMPLETE_DIALOG} = require('./completeDialog');
+const { checkDialog, CHECK_DIALOG} = require('./checkDialog');
 
 
 
@@ -47,7 +47,7 @@ class MainDialog extends ComponentDialog {
         this.addDialog(new aimDialog());
         this.addDialog(new roomDialog());
         this.addDialog(new directDialog());
-        this.addDialog(new completeDialog());
+        this.addDialog(new checkDialog());
         
         this.addDialog(new WaterfallDialog(WATERFALL_DIALOG, [
 
@@ -114,7 +114,7 @@ class MainDialog extends ComponentDialog {
         }
         else if(step.result.value==='목표완료'){
 
-            return await step.beginDialog(COMPLETE_DIALOG);
+            return await step.beginDialog(CHECK_DIALOG);
         }
 
     }

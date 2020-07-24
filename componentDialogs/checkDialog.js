@@ -6,8 +6,9 @@ const { ConfirmPrompt, ChoicePrompt, DateTimePrompt, NumberPrompt, TextPrompt } 
 const { DialogSet, DialogTurnStatus } = require('botbuilder-dialogs');
 
 const { LuisRecognizer } = require('botbuilder-ai');
+
 const {database} = require('../DBconnect');
-const COMPLETE_DIALOG = 'COMPLETE_DIALOG';
+const CHECK_DIALOG = 'CHECK_DIALOG';
 const TEXT_PROMPT = 'TEXT_PROMPT';
 const CHOICE_PROMPT = 'CHOICE_PROMPT';
 const NUMBER_PROMPT = 'NUMBER_PROMPT';
@@ -18,9 +19,9 @@ var makeDay = 1000/60/60/24; //일단위로 만들기위해 나눠줘야하는 �
 var cur_time = new Date();
 var percentage; //달성률 저장변수
 var aimNumber;
-class completeDialog extends ComponentDialog {
+class checkDialog extends ComponentDialog {
     constructor(){
-        super(COMPLETE_DIALOG);
+        super(CHECK_DIALOG);
 
         this.addDialog(new TextPrompt(TEXT_PROMPT));
         this.addDialog(new ChoicePrompt(CHOICE_PROMPT));
@@ -68,14 +69,16 @@ class completeDialog extends ComponentDialog {
         var res_cycle = rows[0].achievecycle; 
         console.log('\r\ncycle:')
         console.log(res_cycle);
-        var res_starttime = rows[0].starttimeday; //목표 시작시간
+        var res_starttimeday = rows[0].starttimeday; //목표 시작시간
+        var res_starttimemonth = rows[0].starttimemonth[0];
+        
         var deadlineArray = res_deadline.split("-");
         var deadObj = new Date(deadlineArray[0],Number(deadlineArray[1])-1,deadlineArray[2]);
 
 
         //자료형이 다르기때문에 실제로 시간 비교가 되는지 확인 필요
         //여기서 마이너스는 일자의 차이가 나와야함.
-        if(cur_time.getTime()>res_deadline.getTime()){
+        if(cur_time.getTime()>deadObj.getTime()){
             var betweenDay = (cur_time.getTime()-deadObj.getTime())/makeDay;
 
             var new_deadline = Math.ceil(betweenDay/res_cycle) * res_cycle + res_deadline;
@@ -121,7 +124,7 @@ class completeDialog extends ComponentDialog {
     }
 }
 
-module.exports.completeDialog = completeDialog;
-module.exports.COMPLETE_DIALOG = COMPLETE_DIALOG;
+module.exports.checkDialog = checkDialog;
+module.exports.CHECK_DIALOG = CHECK_DIALOG;
 
 

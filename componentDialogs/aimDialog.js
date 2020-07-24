@@ -231,7 +231,6 @@ class aimDialog extends ComponentDialog {
                 var userName = step.context._activity.from.name;
                 console.log(entities);
                 await database.queryInsertAim(entities,userName,context);
-            
                 console.log("추가완료!!!");
 
                 endDialog = true;

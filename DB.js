@@ -46,21 +46,23 @@ class DB {
         console.log('변경전');
         console.log(deadline);
     
-        deadline.setDate(deadline.getDate()+parseInt(entities.timeCycle[0]));
+        deadline.setDate(deadline.getDate()+parseInt(entities.timeCycle[0])); //첫번째 마감일은 처음 시작일에서 시작 주기를 더한 것
   
         console.log('deadline 추가:')
         console.log(deadline);
 
+        var trimmedDeadline = await this.trimmed(JSON.stringify(deadline));
+        console.log(trimmedDeadline);
         const query = `
         INSERT INTO aim
         (userId, context, startTimeMonth, startTimeDay,
-            endTimeMonth,endTimeDay,achieveCount,achieveCycle, curCycleCount,percentage,deadline) VALUES
+            endTimeMonth,endTimeDay,achieveCount,achieveCycle, curCycleCount,percentage, deadline) VALUES
         ('${userName}', '${context}',
         ${entities.startTime_month},
         ${entities.startTime_day},
         ${entities.endTime_month},
         ${entities.endTime_day},0,
-        ${entities.timeCycle},0,0,${Timestamp(deadline)});`;
+        ${entities.timeCycle},0,0,'${trimmedDeadline}');`;
         
         console.log('추가완료');
         return await client.query(query);
@@ -159,6 +161,12 @@ class DB {
         await client.query(query);
     }
  
+    async queryShowRoomEntered(userName){//자신이 head인 방의 정보 불러오기
+        const query = `select * from room where headId = '${userName}'`;
+        return await client.query(query);
+    }
+
+
     async queryRoomInfo(roomNum){
         console.log('queryRoomInfo 진입!');
         const getInfoQuery = `select context, achieveCycle from room where roomId = ${roomNum}`;
@@ -219,6 +227,10 @@ class DB {
 
         //목표 마감기한 set
         async querySetDeadline(aimNumber,deadline){
+            //deadline 은 일수로 들어오므로 바꿔줘야함
+            console.log('querySetDeadline진입');
+            console.log(deadline);
+
             const query = `UPDATE aim SET deadline = ${deadline} where aimId = ${aimNumber}`;
             client.query(query);
         }
@@ -227,6 +239,12 @@ class DB {
             const query = `UPDATE aim SET achievecount = ${achieveCount} where aimId = ${aimNumber}`;
             client.query(query);
 
+        }
+
+
+        trimmed(context)
+        {
+            return context.substring(1,11);
         }
 }
 module.exports.DB = DB;
