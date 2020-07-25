@@ -13,6 +13,7 @@ const AIM_DIALOG='AIM_DIALOG';
 
 const CHOICE_PROMPT = 'CHOICE_PROMPT';
 const CONFIRM_PROMPT = 'CONFIRM_PROMPT';
+const NUMBER_PROMPT = 'NUMBER_PROMPT';
 const TEXT_PROMPT = 'TEXT_PROMPT';
 const DATETIME_PROMPT = 'DATETIME_PROMPT';
 const WATERFALL_DIALOG = 'WATERFALL_DIALOG';
@@ -44,7 +45,7 @@ class aimDialog extends ComponentDialog {
 
         this.addDialog(new TextPrompt(TEXT_PROMPT));
         this.addDialog(new ChoicePrompt(CHOICE_PROMPT));
-    
+        this.addDialog(new NumberPrompt(NUMBER_PROMPT));
 
 
         this.addDialog(new WaterfallDialog(WATERFALL_DIALOG, [
@@ -255,7 +256,6 @@ class aimDialog extends ComponentDialog {
 
                 console.log("삭제, 네 진입"); //삭제 
                 var userName = step.context._activity.from.name;
-                //await database.queryIsInRoom(aimNumber,userName);
                 await database.queryDeleteAim(aimNumber,userName);//삭제 디비함수
 
 
@@ -292,7 +292,7 @@ class aimDialog extends ComponentDialog {
                 else if(step.values.modifyWhat.value ==='수행주기'){ //목표 수행주기 수정
                         //수행주기를 파라미터로 넘김
                         
-                        await database.queryModifyAimAchievecycle(aimNumber,modifycontent.value);
+                        await database.queryModifyAimAchievecycle(aimNumber,modifycontent);
                         console.log('수정완료');
                         return await step.endDialog();
                 }

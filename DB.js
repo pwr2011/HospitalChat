@@ -2,6 +2,7 @@
 
 //postgresql을 사용하기 위한 require
 const pg = require('pg');
+const { aimDialog } = require('./componentDialogs/aimDialog');
 
 //postgresql server와 연결하기 위한 변수
 const config = {
@@ -127,12 +128,16 @@ class DB {
 
     //Achievecycle 수정
     async queryModifyAimAchievecycle(aimId,context){
-        const query = `
+       console.log('수정 함수 진입');
+    
+       console.log(context);
+       console.log(typeof context);
+       const query = `
        UPDATE aim
             SET achievecycle = ${context}
-            WHERE aimid =  ${aimId};
+            WHERE aimid = ${aimId};
         `;        
-        return await client.query(query);
+        await client.query(query);
     }
 
     //모든 방을 보여줌
