@@ -80,6 +80,7 @@ class checkDialog extends ComponentDialog {
         //읽어온 deadline정보를 Date()형태로 만들어준다.
         var deadObj = new Date();
         deadObj.setFullYear(parseInt(deadlineArray[0]), parseInt(Number(deadlineArray[1]) - 1), parseInt(deadlineArray[2]));
+        deadObj.setDate(deadObj.getDate()-1);
 
         //현재 날짜와 deadline 날짜를 비교하여 실제로 count가 되는지 확인한다.
         if (cur_time.getTime() > deadObj.getTime()) {
@@ -94,7 +95,8 @@ class checkDialog extends ComponentDialog {
 
             //현재시간과 deadline의 시간차이를 계산한다.
             var betweenDay = (deadObj.getTime() - cur_time.getTime()) / makeDay;
-            
+            console.log("betweenDay!");
+            console.log(betweenDay);
             // 성취율을 100%가 넘는것을 막기위한 if-else
             if (betweenDay < res_cycle) {
                 console.log('ff');

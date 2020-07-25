@@ -187,12 +187,14 @@ class DB {
         var deadline = new Date();
         var month = startTime.getMonth()+1;
         var date = startTime.getDate();
+        startTime.setDate(date);
         deadline.setDate(date+roomCycle);
+        console.log(startTime);
         
         const query = `update room set enteredId = array_append(enteredId,'${userName}')
         where roomId = ${roomNum};
-        insert into aim (userId, context, roomid, deadline, starttimemonth, starttimeday, achieveCount, achieveCycle, curCycleCount)
-        values ('${userName}', '${roomContext}',${roomNum},'2020-${deadline.getMonth()+1}-${deadline.getDate()}',${month} , ${date} ,0,${roomCycle},0)`;
+        insert into aim (userId, context, roomid, deadline, starttimemonth, starttimeday, achieveCount, achieveCycle, curCycleCount,percentage,endtimemonth,endtimeday)
+        values ('${userName}', '${roomContext}',${roomNum},'2020-${deadline.getMonth()+1}-${deadline.getDate()}',${startTime.getMonth()+1} , ${startTime.getDate()} ,0,${roomCycle},0,0,12,31)`;
         return await client.query(query);
     }
 
@@ -211,8 +213,8 @@ class DB {
 
         //Aim테이블에 방장의 id에 본 목표를 넣음.
        const query3 =
-        `insert into aim (userId, context,roomId, achieveCount, achieveCycle, curCycleCount)
-         values ('${roomHead}', '${roomContext}',${newRoomNum},0,${roomCycle},0)`;
+        `insert into aim (userId, context,roomId, achieveCount, achieveCycle, curCycleCount,percentage)
+         values ('${roomHead}', '${roomContext}',${newRoomNum},0,${roomCycle},0,0)`;
        
         await client.query(query3);
         }
