@@ -14,7 +14,6 @@ const AIM_DIALOG='AIM_DIALOG';
 const CHOICE_PROMPT = 'CHOICE_PROMPT';
 const CONFIRM_PROMPT = 'CONFIRM_PROMPT';
 const TEXT_PROMPT = 'TEXT_PROMPT';
-
 const DATETIME_PROMPT = 'DATETIME_PROMPT';
 const WATERFALL_DIALOG = 'WATERFALL_DIALOG';
 var endDialog = '';
@@ -31,7 +30,7 @@ const dispatchRecognizer = new LuisRecognizer({
 var entities; //루이스 엔티티
 var context; //목표내용
 var modifycontent;//수정할내용
-var aimNumber = -1 //목표 번호를 저장함 디폴트는 -1
+var aimNumber;
 var luisResult;
 
 

@@ -48,7 +48,7 @@ class DialogBot extends ActivityHandler {
             console.log("onMessage 통과");
             // By calling next() you ensure that the next BotHandler is run.
             //밑에 삭제되어야 함.
-            //await next();
+            await next();
         });
 
     
