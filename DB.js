@@ -128,10 +128,7 @@ class DB {
 
     //Achievecycle 수정
     async queryModifyAimAchievecycle(aimId,context){
-       console.log('수정 함수 진입');
     
-       console.log(context);
-       console.log(typeof context);
        const query = `
        UPDATE aim
             SET achievecycle = ${context}
@@ -189,7 +186,6 @@ class DB {
         var date = startTime.getDate();
         startTime.setDate(date);
         deadline.setDate(date+roomCycle);
-        console.log(startTime);
         
         const query = `update room set enteredId = array_append(enteredId,'${userName}')
         where roomId = ${roomNum};
