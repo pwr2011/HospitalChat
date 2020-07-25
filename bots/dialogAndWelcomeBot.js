@@ -14,7 +14,7 @@ class DialogAndWelcomeBot extends DialogBot {
             //새로온 유저를 확인한다.
             for (let cnt = 0; cnt < membersAdded.length; cnt++) {
                 if (membersAdded[cnt].id !== context.activity.recipient.id) {
-                    const reply = `안녕하세요 ${membersAdded[cnt].name}님 \n 계속하시려면 아무 말이나 눌러주세요`;
+                    const reply = `안녕하세요 ${membersAdded[cnt].name}님! \n 계속하시려면 아무 말이나 눌러주세요`;
                     await context.sendActivity(reply);
                 }
             }

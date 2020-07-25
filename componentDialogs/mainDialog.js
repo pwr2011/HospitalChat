@@ -62,7 +62,7 @@ class MainDialog extends ComponentDialog {
     async choiceStep(step) {
         endDialog = false;
         
-        return await step.prompt(CHOICE_PROMPT, 'AIMY가 뭘 도와드릴까요?', ['ROOM', '목표', '스케줄확인', '직접입력', '목표완료']);
+        return await step.prompt(CHOICE_PROMPT, 'AIMY가 뭘 도와드릴까요?', ['ROOM', '목표', '나의 목표 확인', '직접입력', '목표완료']);
     }
 
     //선택한 기능에 따라 sub dialog를 실행시켜 주는 함수이다.
@@ -77,7 +77,7 @@ class MainDialog extends ComponentDialog {
             return await step.beginDialog(ROOM_DIALOG);
         }
 
-        else if (step.result.value === '스케줄확인') {
+        else if (step.result.value === '나의 목표 확인') {
             
             //스케줄 확인은 바로 query를 실행해 보여준다.
             var userName = step.context._activity.from.name;

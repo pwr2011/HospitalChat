@@ -158,8 +158,8 @@ class DB {
         
         const query = `update room set enteredId = array_append(enteredId,'${userName}')
         where roomId = ${roomNum};
-        insert into aim (userId, context, roomid, deadline, starttimemonth, starttimeday, achieveCount, achieveCycle, curCycleCount)
-        values ('${userName}', '${roomContext}',${roomNum},'2020-${deadline.getMonth()+1}-${deadline.getDate()}',${month} , ${date} ,0,${roomCycle},0)`;
+        insert into aim (userId, context, roomid, deadline, starttimemonth, starttimeday, achieveCount, achieveCycle, curCycleCount,percentage,endtimemonth,endtimeday)
+        values ('${userName}', '${roomContext}',${roomNum},'2020-${deadline.getMonth()+1}-${deadline.getDate()}',${month} , ${date}, 0 ,${roomCycle},0,0,00,00)`;
         return await client.query(query);
     }
  
