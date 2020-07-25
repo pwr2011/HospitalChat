@@ -1,89 +1,48 @@
+//유저로부터 메세지가 도착할때의 경우를 처리하는 
+//bot handler함수 onMessage()가 구현되어 있다.
+
+//activity handler는 dialog를 만들기 위해 필수적으로 require해야 한다.
 const { ActivityHandler } = require('botbuilder');
-const {MainDialog} = require('../componentDialogs/mainDialog');
+const { MainDialog } = require('../componentDialogs/mainDialog');
+
+//
 class DialogBot extends ActivityHandler {
-    constructor(conversationState, userState,dialog) {
+    constructor(conversationState, userState, dialog) {
         super();
         if (!conversationState) throw new Error('[DialogBot]: Missing parameter. conversationState is required');
         if (!userState) throw new Error('[DialogBot]: Missing parameter. userState is required');
         if (!dialog) throw new Error('[DialogBot]: Missing parameter. dialog is required');
 
-
-
-
-
-
-        //User state와 dialog State를 저장하기 위함
+        //User state와 dialog State를 저장하기 위한 변수들이다.
         this.conversationState = conversationState;
         this.userState = userState;
-        this.dialog = dialog; // 최영진 
+        this.dialog = dialog;
         this.dialogState = conversationState.createProperty("dialogState");
         this.MainDialog = new MainDialog(this.userState);
-       
 
-        
-
-       // this.previousIntent = this.conversationState.createProperty("previousIntent");
-        // this.conversationData = this.conversationState.createProperty('conservationData');
-
-        // See https://aka.ms/about-bot-activity-message to learn more about the message and other activity types.
-       this.onMessage(async (context, next) => {
+        this.onMessage(async (context, next) => {
             console.log("onMessage 진입");
-            
-           // await this.dialog.run(context,this.dialogState); // 최영진
 
-
-            if(context.activity.text==="login"){
-
-                await context.sendActivity({ attachments: [CardFactory.adaptiveCard(adaptiveCard)] });
-
-            }
-            else if(context.activity.value != undefined){
-                var user = context.activity.value;
-                await context.sendActivity("hello , your username : " + user.username + ",password :" + user.password);
-
-            }else {
-                await this.dialog.run(context,this.dialogState); 
-            }
-
-            console.log("onMessage 통과");
-            // By calling next() you ensure that the next BotHandler is run.
-            //밑에 삭제되어야 함.
-            //await next();
+            //메세지가 들어온다면 밑의 run()함수를 작동시킨다.
+            await this.dialog.run(context, this.dialogState);
+            await next();
         });
-
-    
-        // this.onDialog(async (context, next) => {
-        //     console.log("onDialog 진입!");
-        //     // Save any state changes. The load happened during the execution of the Dialog.
-        //     await this.conversationState.saveChanges(context, false);
-        //     await this.userState.saveChanges(context, false);
-        //     await next();
-        // });
-
-        // this.onMembersAdded(async (context, next) => {
-        //     console.log("onMembersAdded 진입!");
-        //     await this.sendwelcomeMessage(context);
-        //     await this.sendSuggestedActions(context);
-        //     // By calling next() you ensure that the next BotHandler is run.
-        //     await next();
-        // });
-        
-        
     }
+
+    //run()함수는 dialog의 핵심 함수로써 dialog step의 실행을 관리한다.
     async run(context) {
+        console.log("dialogBot의 run 진입!");
         await super.run(context);
         var isEnd = await this.MainDialog.isEndDialog();
-        // Save any state changes. The load happened during the execution of the Dialog.
+        
+        // dialog의 실행에 발생하는 state 변화를 저장한다.
         await this.conversationState.saveChanges(context, false);
         await this.userState.saveChanges(context, false);
-        
-        if(isEnd)
-        {
+
+        if (isEnd) {
             await super.run(context);
         }
     }
-
-    
 }
 
 module.exports.DialogBot = DialogBot;
